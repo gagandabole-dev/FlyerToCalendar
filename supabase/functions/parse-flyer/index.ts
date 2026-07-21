@@ -140,14 +140,19 @@ Return ONLY a valid JSON array of event objects matching this schema:
       }
     };
 
-    // Primary & Fallback model endpoints
-    const models = ["gemini-2.0-flash", "gemini-2.5-flash"];
+    // Automatic retry logic with backoff for rate limits (429)
+    const maxRetries = 2;
     let geminiRes: Response | null = null;
     let lastErrBody = "";
 
-    for (const model of models) {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      if (attempt > 0) {
+        // Wait 2.5 seconds before retrying if rate limited
+        await new Promise((resolve) => setTimeout(resolve, 2500));
+      }
+
       geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -157,18 +162,24 @@ Return ONLY a valid JSON array of event objects matching this schema:
 
       if (geminiRes.ok) {
         break;
-      } else {
-        lastErrBody = await geminiRes.text();
-        if (geminiRes.status !== 404) {
-          // If not a 404 model name error (e.g. rate limit 429), stop trying other models
-          break;
-        }
+      }
+
+      lastErrBody = await geminiRes.text();
+
+      // If not rate limited (429), break immediately
+      if (geminiRes.status !== 429) {
+        break;
       }
     }
 
     if (!geminiRes || !geminiRes.ok) {
+      const isRateLimit = geminiRes?.status === 429;
+      const userMessage = isRateLimit
+        ? "Gemini AI API rate limit reached. Please wait a few seconds and try again."
+        : `Gemini API Error (${geminiRes?.status || 500})`;
+
       return new Response(
-        JSON.stringify({ error: `Gemini API Error (${geminiRes?.status || 500})`, details: lastErrBody }),
+        JSON.stringify({ error: userMessage, details: lastErrBody }),
         { status: geminiRes?.status || 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

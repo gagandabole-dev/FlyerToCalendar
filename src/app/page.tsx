@@ -7,6 +7,7 @@ export default function Home() {
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [events, setEvents] = useState<any[] | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [submittedEmail, setSubmittedEmail] = useState(false);
 
@@ -14,6 +15,7 @@ export default function Home() {
     const selected = e.target.files?.[0];
     if (selected) {
       setFile(selected);
+      setErrorMessage(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
@@ -26,6 +28,7 @@ export default function Home() {
     if (!file && !preview) return;
     setLoading(true);
     setEvents(null);
+    setErrorMessage(null);
 
     try {
       let res: Response;
@@ -50,14 +53,15 @@ export default function Home() {
 
       const data = await res.json();
       const extractedEvents = Array.isArray(data) ? data : data.events;
-      if (extractedEvents) {
+
+      if (res.ok && extractedEvents) {
         setEvents(extractedEvents);
       } else {
-        alert(data.error || data.details || "Failed to parse flyer details.");
+        setErrorMessage(data.error || "Gemini AI API rate limit reached. Please wait a few seconds and try again.");
       }
     } catch (err) {
       console.error(err);
-      alert("Error processing flyer upload.");
+      setErrorMessage("Error processing flyer upload. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -111,6 +115,16 @@ export default function Home() {
             )}
             <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
           </label>
+
+          {errorMessage && (
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-sm text-left flex items-start gap-3">
+              <span className="text-lg">⏳</span>
+              <div>
+                <p className="font-semibold">Rate Limit Notice</p>
+                <p className="text-xs text-amber-200/80 mt-0.5">{errorMessage}</p>
+              </div>
+            </div>
+          )}
 
           <button
             onClick={handleUpload}

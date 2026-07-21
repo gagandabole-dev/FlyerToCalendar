@@ -45,8 +45,21 @@ export async function POST(request: Request) {
 
     if (!upstreamResponse.ok) {
       const errorText = await upstreamResponse.text();
+      let parsedError = null;
+      try {
+        parsedError = JSON.parse(errorText);
+      } catch (_) {
+        // Not valid JSON
+      }
+
+      const errorMessage =
+        parsedError?.error ||
+        (upstreamResponse.status === 429
+          ? "Gemini AI API rate limit reached. Please wait a few seconds and try again."
+          : `Edge Function error (${upstreamResponse.status})`);
+
       return NextResponse.json(
-        { error: `Edge Function responded with status ${upstreamResponse.status}`, details: errorText },
+        { error: errorMessage, details: parsedError?.details || errorText },
         { status: upstreamResponse.status, headers: corsHeaders }
       );
     }
