@@ -50,15 +50,37 @@ export default function DashboardPage() {
     }
   };
 
-  // Convert uploaded image file to Base64 string
-  const processImageFile = (file: File) => {
+  // Convert uploaded image file to Base64 string for preview and post FormData to API route proxy
+  const processImageFile = async (file: File) => {
     const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64String = reader.result as string;
-      setImagePreview(base64String);
-      await sendToParsingEngine(base64String);
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
     };
     reader.readAsDataURL(file);
+
+    setIsProcessing(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin");
+
+      const response = await fetch("/api/parse", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      const eventsList = Array.isArray(data) ? data : data.events;
+      if (eventsList) {
+        setEvents(eventsList);
+        setActiveTab("schedule");
+      } else {
+        console.error("Failed to parse schedule:", data.error || data.details);
+      }
+    } catch (error) {
+      console.error("Upstream parsing failure:", error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -71,29 +93,6 @@ export default function DashboardPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       processImageFile(e.target.files[0]);
-    }
-  };
-
-  const sendToParsingEngine = async (base64Data: string) => {
-    setIsProcessing(true);
-    try {
-      const response = await fetch("http://127.0.0.1:54321/functions/v1/parse-flyer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageUrl: base64Data,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin",
-        }),
-      });
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        setEvents(data);
-        setActiveTab("schedule"); // On mobile, automatically swap view to show data
-      }
-    } catch (error) {
-      console.error("Upstream parsing failure:", error);
-    } finally {
-      setIsProcessing(false);
     }
   };
 

@@ -1,6 +1,3 @@
-import { GoogleGenAI } from "npm:@google/genai";
-import { getSystemPrompt } from "./prompt-template.ts";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -20,115 +17,155 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { imageUrl, timezone } = await req.json();
-
-    if (!imageUrl) {
-      return new Response(
-        JSON.stringify({ error: "Missing required parameter: imageUrl" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const targetTimezone = timezone || "Europe/Berlin";
-
-    // Handle base64 vs HTTP URL payload safely
-    let base64Image = "";
-    let contentType = "image/jpeg";
-
-    if (imageUrl.startsWith("data:")) {
-      const parts = imageUrl.split(";base64,");
-      contentType = parts[0].replace("data:", "");
-      base64Image = parts[1];
-    } else if (imageUrl.startsWith("http")) {
-      const imageResponse = await fetch(imageUrl);
-      if (!imageResponse.ok) {
-        return new Response(
-          JSON.stringify({ error: `Failed to fetch image: ${imageResponse.statusText}` }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      contentType = imageResponse.headers.get("content-type") || "image/jpeg";
-      const arrayBuffer = await imageResponse.arrayBuffer();
-      const imageBytes = new Uint8Array(arrayBuffer);
-      let binary = "";
-      for (let i = 0; i < imageBytes.byteLength; i++) {
-        binary += String.fromCharCode(imageBytes[i]);
-      }
-      base64Image = btoa(binary);
-    } else {
-      base64Image = imageUrl;
-    }
-
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "GEMINI_API_KEY environment variable is not configured." }),
+        JSON.stringify({ error: "GEMINI_API_KEY environment variable is missing on Supabase Cloud." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    let base64Data = "";
+    let mimeType = "image/jpeg";
+    let timezone = "Europe/Berlin";
 
-    const responseSchema = {
-      type: "array",
-      description: "A list of parsed calendar events from the flyer image.",
-      items: {
-        type: "object",
-        properties: {
-          title: { type: "string", description: "Title of the event or performance." },
-          artist: { type: "string", description: "Artist, DJ, or band name." },
-          date: { type: "string", description: "YYYY-MM-DD format date." },
-          startTime: { type: "string", description: "Start time in HH:MM 24-hour format." },
-          endTime: { type: "string", description: "End time in HH:MM 24-hour format." },
-          room: { type: "string", description: "Room, stage, or area." },
-        },
-        required: ["title", "artist", "date", "startTime", "endTime", "room"],
-      },
-    };
+    const contentType = req.headers.get("content-type") || "";
 
-    const currentISOString = new Date().toISOString();
-    const systemPrompt = getSystemPrompt ? getSystemPrompt(targetTimezone, currentISOString) : "Extract event details from this flyer into JSON.";
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const fileEntry = formData.get("file") || formData.get("image");
+      const imageUrlParam = formData.get("imageUrl");
+      const tzParam = formData.get("timezone");
 
-    const requestPayload = {
-      contents: [
-        { inlineData: { data: base64Image, mimeType: contentType } },
-        systemPrompt,
-      ],
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
-      },
-    };
+      if (tzParam && typeof tzParam === "string") {
+        timezone = tzParam;
+      }
 
-    let response;
-    try {
-      response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        ...requestPayload,
-      });
-    } catch (err: any) {
-      console.warn("Primary model invocation failed, attempting fallback:", err);
-      response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-lite",
-        ...requestPayload,
-      });
+      if (fileEntry && (fileEntry instanceof File || fileEntry instanceof Blob)) {
+        mimeType = fileEntry.type || "image/jpeg";
+        const buffer = await fileEntry.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        base64Data = btoa(binary);
+      } else if (imageUrlParam && typeof imageUrlParam === "string") {
+        if (imageUrlParam.startsWith("data:")) {
+          const parts = imageUrlParam.split(";base64,");
+          if (parts.length === 2) {
+            mimeType = parts[0].replace("data:", "");
+            base64Data = parts[1];
+          } else {
+            base64Data = imageUrlParam.slice(imageUrlParam.indexOf(",") + 1);
+          }
+        } else {
+          base64Data = imageUrlParam;
+        }
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Missing required file or imageUrl in FormData" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // JSON body
+      const body = await req.json();
+      const imageUrl = body.imageUrl || body.base64Image;
+      if (body.timezone) timezone = body.timezone;
+
+      if (!imageUrl) {
+        return new Response(
+          JSON.stringify({ error: "Missing required parameter: imageUrl" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (imageUrl.startsWith("data:")) {
+        const parts = imageUrl.split(";base64,");
+        if (parts.length === 2) {
+          mimeType = parts[0].replace("data:", "");
+          base64Data = parts[1];
+        } else {
+          base64Data = imageUrl.slice(imageUrl.indexOf(",") + 1);
+        }
+      } else if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
+        const imgRes = await fetch(imageUrl);
+        if (!imgRes.ok) {
+          return new Response(
+            JSON.stringify({ error: `Failed to download image from URL: ${imgRes.statusText}` }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        mimeType = imgRes.headers.get("content-type") || "image/jpeg";
+        const buffer = await imgRes.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = "";
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        base64Data = btoa(binary);
+      } else {
+        base64Data = imageUrl;
+      }
     }
 
-    let responseText = response.text || "";
-    if (responseText.startsWith("```json")) responseText = responseText.substring(7);
-    if (responseText.startsWith("```")) responseText = responseText.substring(3);
-    if (responseText.endsWith("```")) responseText = responseText.substring(0, responseText.length - 3);
+    const promptText = `Extract all scheduled event details, workshops, or performances from this flyer image.
+Target Timezone: ${timezone}.
+Current Date Context: ${new Date().toISOString()}.
 
-    const parsedData = JSON.parse(responseText.trim());
+Return ONLY a valid JSON array of event objects matching this schema:
+[
+  {
+    "title": "Title of event or workshop",
+    "artist": "Artist, DJ, or Instructor",
+    "date": "YYYY-MM-DD",
+    "startTime": "HH:MM",
+    "endTime": "HH:MM",
+    "room": "Room or Stage name"
+  }
+]`;
 
-    return new Response(JSON.stringify(parsedData), {
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: promptText },
+                { inline_data: { mime_type: mimeType, data: base64Data } }
+              ]
+            }
+          ],
+          generationConfig: {
+            response_mime_type: "application/json"
+          }
+        })
+      }
+    );
+
+    if (!geminiRes.ok) {
+      const errBody = await geminiRes.text();
+      return new Response(
+        JSON.stringify({ error: `Gemini API Error (${geminiRes.status})`, details: errBody }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const geminiJson = await geminiRes.json();
+    const rawText = geminiJson.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+    const events = JSON.parse(rawText);
+
+    return new Response(JSON.stringify(events), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error: any) {
-    console.error("Error processing flyer:", error);
+  } catch (err: any) {
     return new Response(
-      JSON.stringify({ error: error?.message || "An unexpected error occurred." }),
+      JSON.stringify({ error: err.message || "Internal Server Error", details: String(err) }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

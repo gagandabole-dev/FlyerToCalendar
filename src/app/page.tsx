@@ -23,25 +23,37 @@ export default function Home() {
   };
 
   const handleUpload = async () => {
-    if (!preview) return;
+    if (!file && !preview) return;
     setLoading(true);
     setEvents(null);
 
     try {
-      const res = await fetch("/api/parse", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          base64Image: preview,
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin",
-        }),
-      });
+      let res: Response;
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin");
+        res = await fetch("/api/parse", {
+          method: "POST",
+          body: formData,
+        });
+      } else {
+        res = await fetch("/api/parse", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            base64Image: preview,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin",
+          }),
+        });
+      }
 
       const data = await res.json();
-      if (data.events) {
-        setEvents(data.events);
+      const extractedEvents = Array.isArray(data) ? data : data.events;
+      if (extractedEvents) {
+        setEvents(extractedEvents);
       } else {
-        alert(data.error || "Failed to parse flyer details.");
+        alert(data.error || data.details || "Failed to parse flyer details.");
       }
     } catch (err) {
       console.error(err);
@@ -116,8 +128,8 @@ export default function Home() {
                 {events.map((evt, idx) => (
                   <div key={idx} className="p-4 bg-slate-900 rounded-lg border border-slate-800 space-y-1">
                     <p className="font-bold text-white">{evt.title}</p>
-                    <p className="text-xs text-slate-400">📍 {evt.location || "Location not specified"}</p>
-                    <p className="text-xs text-slate-400">🕒 {evt.start_time} - {evt.end_time}</p>
+                    <p className="text-xs text-slate-400">📍 {evt.room || evt.location || "Location not specified"}</p>
+                    <p className="text-xs text-slate-400">🕒 {evt.startTime || evt.start_time} - {evt.endTime || evt.end_time}</p>
                   </div>
                 ))}
               </div>
