@@ -3,12 +3,16 @@ import { NextResponse } from "next/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    
-    // Pass the payload directly to the local edge function port
-    const response = await fetch("http://127.0.0.1:54321/functions/v1/parse-flyer", {
+
+    // Dynamically fallback to local Supabase CLI if env variable isn't set
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "http://127.0.0.1:54321";
+    const functionEndpoint = `${supabaseUrl}/functions/v1/parse-flyer`;
+
+    const response = await fetch(functionEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""}`,
       },
       body: JSON.stringify({
         imageUrl: body.base64Image || body.imageUrl,
@@ -18,12 +22,16 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      return NextResponse.json({ error: `Edge Function responded with status ${response.status}`, details: errorText }, { status: response.status });
+      return NextResponse.json(
+        { error: `Edge Function responded with status ${response.status}`, details: errorText },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error: any) {
-    return NextResponse.json({ error: "Internal Server Proxy Error", message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Internal Server Proxy Error";
+    return NextResponse.json({ error: "Internal Server Proxy Error", message }, { status: 500 });
   }
 }
