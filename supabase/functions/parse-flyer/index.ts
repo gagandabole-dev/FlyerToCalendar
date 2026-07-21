@@ -126,32 +126,50 @@ Return ONLY a valid JSON array of event objects matching this schema:
   }
 ]`;
 
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: promptText },
-                { inline_data: { mime_type: mimeType, data: base64Data } }
-              ]
-            }
-          ],
-          generationConfig: {
-            response_mime_type: "application/json"
-          }
-        })
+    const requestPayload = {
+      contents: [
+        {
+          parts: [
+            { text: promptText },
+            { inline_data: { mime_type: mimeType, data: base64Data } }
+          ]
+        }
+      ],
+      generationConfig: {
+        response_mime_type: "application/json"
       }
-    );
+    };
 
-    if (!geminiRes.ok) {
-      const errBody = await geminiRes.text();
+    // Primary & Fallback model endpoints
+    const models = ["gemini-2.0-flash", "gemini-2.5-flash"];
+    let geminiRes: Response | null = null;
+    let lastErrBody = "";
+
+    for (const model of models) {
+      geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestPayload)
+        }
+      );
+
+      if (geminiRes.ok) {
+        break;
+      } else {
+        lastErrBody = await geminiRes.text();
+        if (geminiRes.status !== 404) {
+          // If not a 404 model name error (e.g. rate limit 429), stop trying other models
+          break;
+        }
+      }
+    }
+
+    if (!geminiRes || !geminiRes.ok) {
       return new Response(
-        JSON.stringify({ error: `Gemini API Error (${geminiRes.status})`, details: errBody }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: `Gemini API Error (${geminiRes?.status || 500})`, details: lastErrBody }),
+        { status: geminiRes?.status || 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
