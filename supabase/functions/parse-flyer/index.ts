@@ -140,19 +140,14 @@ Return ONLY a valid JSON array of event objects matching this schema:
       }
     };
 
-    // Automatic retry logic with backoff for rate limits (429)
-    const maxRetries = 2;
+    // Model fallback chain: gemini-2.5-flash -> gemini-2.0-flash -> gemini-2.0-flash-lite -> gemini-1.5-flash
+    const candidateModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash"];
     let geminiRes: Response | null = null;
     let lastErrBody = "";
 
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      if (attempt > 0) {
-        // Wait 2.5 seconds before retrying if rate limited
-        await new Promise((resolve) => setTimeout(resolve, 2500));
-      }
-
+    for (const model of candidateModels) {
       geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -165,10 +160,25 @@ Return ONLY a valid JSON array of event objects matching this schema:
       }
 
       lastErrBody = await geminiRes.text();
-
-      // If not rate limited (429), break immediately
-      if (geminiRes.status !== 429) {
+      // If 429 (rate limit) or 404 (model unavailable), continue to next fallback model immediately
+      if (geminiRes.status !== 429 && geminiRes.status !== 404) {
         break;
+      }
+    }
+
+    // Final backoff retry if all models returned 429
+    if (geminiRes && geminiRes.status === 429) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestPayload)
+        }
+      );
+      if (!geminiRes.ok) {
+        lastErrBody = await geminiRes.text();
       }
     }
 

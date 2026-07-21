@@ -6,10 +6,24 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const [events, setEvents] = useState<any[] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [submittedEmail, setSubmittedEmail] = useState(false);
+
+  const startCooldown = () => {
+    setCooldown(5);
+    const interval = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
@@ -25,7 +39,8 @@ export default function Home() {
   };
 
   const handleUpload = async () => {
-    if (!file && !preview) return;
+    if (loading || cooldown > 0 || (!file && !preview)) return;
+
     setLoading(true);
     setEvents(null);
     setErrorMessage(null);
@@ -64,6 +79,7 @@ export default function Home() {
       setErrorMessage("Error processing flyer upload. Please try again.");
     } finally {
       setLoading(false);
+      startCooldown();
     }
   };
 
@@ -128,10 +144,14 @@ export default function Home() {
 
           <button
             onClick={handleUpload}
-            disabled={!preview || loading}
+            disabled={!preview || loading || cooldown > 0}
             className="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-indigo-600/25"
           >
-            {loading ? "Extracting Event Details..." : "Convert Flyer to Calendar"}
+            {loading
+              ? "Extracting Event Details..."
+              : cooldown > 0
+              ? `Please wait (${cooldown}s)...`
+              : "Convert Flyer to Calendar"}
           </button>
 
           {/* Results Output */}
