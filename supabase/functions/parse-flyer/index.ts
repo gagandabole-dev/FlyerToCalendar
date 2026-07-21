@@ -140,10 +140,11 @@ Return ONLY a valid JSON array of event objects matching this schema:
       }
     };
 
-    // Model fallback chain: gemini-2.5-flash -> gemini-2.0-flash -> gemini-2.0-flash-lite -> gemini-1.5-flash
-    const candidateModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash"];
+    // Valid active Gemini API models
+    const candidateModels = ["gemini-2.0-flash", "gemini-2.0-flash-lite"];
     let geminiRes: Response | null = null;
     let lastErrBody = "";
+    let rateLimitStatus = false;
 
     for (const model of candidateModels) {
       geminiRes = await fetch(
@@ -160,37 +161,28 @@ Return ONLY a valid JSON array of event objects matching this schema:
       }
 
       lastErrBody = await geminiRes.text();
-      // If 429 (rate limit) or 404 (model unavailable), continue to next fallback model immediately
-      if (geminiRes.status !== 429 && geminiRes.status !== 404) {
-        break;
-      }
-    }
-
-    // Final backoff retry if all models returned 429
-    if (geminiRes && geminiRes.status === 429) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestPayload)
-        }
-      );
-      if (!geminiRes.ok) {
-        lastErrBody = await geminiRes.text();
+      if (geminiRes.status === 429) {
+        rateLimitStatus = true;
       }
     }
 
     if (!geminiRes || !geminiRes.ok) {
-      const isRateLimit = geminiRes?.status === 429;
-      const userMessage = isRateLimit
-        ? "Gemini AI API rate limit reached. Please wait a few seconds and try again."
-        : `Gemini API Error (${geminiRes?.status || 500})`;
+      const is429 = rateLimitStatus || geminiRes?.status === 429;
+      let userMessage = "Gemini API Error";
+
+      if (is429) {
+        let retryMatch = lastErrBody.match(/retry in ([0-9.]+)s/i);
+        let waitSec = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) : null;
+        userMessage = waitSec
+          ? `Gemini AI API rate limit reached. Please retry in ${waitSec} seconds.`
+          : "Gemini AI API free tier quota limit reached. Please try again in 1 minute.";
+      } else {
+        userMessage = `Gemini API Error (${geminiRes?.status || 500})`;
+      }
 
       return new Response(
         JSON.stringify({ error: userMessage, details: lastErrBody }),
-        { status: geminiRes?.status || 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: is429 ? 429 : (geminiRes?.status || 500), headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
