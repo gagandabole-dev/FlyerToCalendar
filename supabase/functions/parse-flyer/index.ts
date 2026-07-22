@@ -140,8 +140,8 @@ Return ONLY a valid JSON array of event objects matching this schema:
       }
     };
 
-    // Valid active Gemini API models
-    const candidateModels = ["gemini-2.0-flash", "gemini-2.0-flash-lite"];
+    // Valid active Gemini API models (since year is 2026, 2.0/1.5 models are deprecated)
+    const candidateModels = ["gemini-3.5-flash", "gemini-3.6-flash", "gemini-2.5-flash", "gemini-3.5-flash-lite"];
     let geminiRes: Response | null = null;
     let lastErrBody = "";
     let rateLimitStatus = false;
@@ -186,7 +186,7 @@ Return ONLY a valid JSON array of event objects matching this schema:
       );
     }
 
-    const geminiJson = await geminiRes.json();
+    const geminiJson = await geminiRes.ok ? await geminiRes.json() : {};
     const rawText = geminiJson.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
     const events = JSON.parse(rawText);
 
