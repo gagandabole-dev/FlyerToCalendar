@@ -24,9 +24,8 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [submittedEmail, setSubmittedEmail] = useState(false);
 
-  // Sharing Modal & Calendar Selector Modal
+  // Sharing Modal
   const [showShareModal, setShowShareModal] = useState(false);
-  const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -50,7 +49,7 @@ export default function Home() {
 
     setErrorMessage(null);
 
-    const maxFiles = userMode === "organizer" ? 2 : 1;
+    const maxFiles = userMode === "organizer" ? 10 : 1;
     const newFiles = [...files, ...selectedFiles].slice(0, maxFiles);
     setFiles(newFiles);
 
@@ -254,18 +253,18 @@ export default function Home() {
           <div className="lg:col-span-5 bg-slate-900/60 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md">
             <h2 className="text-lg font-bold text-white text-left flex items-center gap-2">
               <span>{userMode === "user" ? "📸" : "📚"}</span>
-              {userMode === "user" ? "Upload Flyer Graphic" : "Upload Event Graphics (Max 2)"}
+              {userMode === "user" ? "Upload Flyer Graphic" : `Upload Flyer Graphics (Max ${files.length >= 10 ? files.length : 10})`}
             </h2>
 
             {/* Dropzone area */}
-            {previews.length < (userMode === "organizer" ? 2 : 1) ? (
+            {previews.length < (userMode === "organizer" ? 10 : 1) ? (
               <label className="border-2 border-dashed border-slate-800 hover:border-indigo-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/40 min-h-[220px] group">
                 <div className="space-y-3 text-center">
                   <div className="w-12 h-12 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center mx-auto group-hover:scale-105 transition-transform">
                     <span>➕</span>
                   </div>
                   <p className="text-sm text-slate-300 font-medium">Click to select image file</p>
-                  <p className="text-xs text-slate-500">Supports PNG, JPG, or WEBP</p>
+                  <p className="text-xs text-slate-500">Supports PNG, JPG, or WEBP (Up to 10)</p>
                 </div>
                 <input
                   type="file"
@@ -280,7 +279,7 @@ export default function Home() {
 
             {/* Preview List */}
             {previews.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
                 {previews.map((preview, idx) => (
                   <div key={idx} className="relative bg-slate-950/60 border border-slate-850 p-3 rounded-xl flex items-center gap-3">
                     <img src={preview} alt={`Flyer Preview ${idx + 1}`} className="w-14 h-14 object-cover rounded-lg border border-slate-800" />
@@ -330,18 +329,40 @@ export default function Home() {
 
           {/* Right Column: Editable review list */}
           <div className="lg:col-span-7 bg-slate-900/60 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md flex flex-col min-h-[420px]">
-            <div className="flex items-center justify-between border-b border-slate-800/85 pb-4 shrink-0">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <span>🗓️</span>
-                Review Extracted Events
-              </h2>
-              {events.length > 0 && (
-                <button
-                  onClick={() => setShowCalendarModal(true)}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg text-white transition shadow-md flex items-center gap-1.5"
-                >
-                  📅 Add events to your calendar
-                </button>
+            
+            {/* Header and top buttons */}
+            <div className="flex flex-col border-b border-slate-800/85 pb-4 shrink-0 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <span>🗓️</span>
+                  Review Extracted Events
+                </h2>
+                {events.length > 0 && userMode === "user" && (
+                  <button
+                    onClick={() => triggerIcsDownload("user")}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg text-white transition shadow-md flex items-center gap-1.5"
+                  >
+                    📅 Export to Calendar (.ics)
+                  </button>
+                )}
+              </div>
+
+              {/* Organizer Actions moved directly below header */}
+              {events.length > 0 && userMode === "organizer" && (
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button
+                    onClick={() => triggerIcsDownload("organizer")}
+                    className="flex-1 py-2.5 px-4 rounded-xl font-bold bg-slate-850 hover:bg-slate-800 text-slate-200 hover:text-white transition border border-slate-750 flex items-center justify-center gap-2 text-xs shadow-md"
+                  >
+                    <span>💾</span> Download Combined .ICS
+                  </button>
+                  <button
+                    onClick={() => setShowShareModal(true)}
+                    className="flex-1 py-2.5 px-4 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center justify-center gap-2 text-xs shadow-lg shadow-indigo-600/20"
+                  >
+                    <span>🔗</span> Generate Social Link & QR
+                  </button>
+                </div>
               )}
             </div>
 
@@ -351,7 +372,7 @@ export default function Home() {
                 <div className="text-4xl mb-3">📋</div>
                 <p className="text-sm font-medium">No events parsed yet.</p>
                 <p className="text-xs text-slate-650 text-center max-w-xs mt-1 leading-relaxed">
-                  Upload {userMode === "organizer" ? "up to 2 flyers" : "your timetable flyer"} on the left panel to populate this interactive grid.
+                  Upload {userMode === "organizer" ? "up to 10 flyers" : "your timetable flyer"} on the left panel to populate this interactive grid.
                 </p>
               </div>
             ) : (
@@ -443,21 +464,14 @@ export default function Home() {
                   </button>
                 </div>
 
-                {/* Organizer exports panel */}
-                {userMode === "organizer" && (
+                {/* User mode final export panel */}
+                {userMode === "user" && (
                   <div className="pt-4 border-t border-slate-850 flex flex-col sm:flex-row gap-3">
                     <button
-                      onClick={() => triggerIcsDownload("organizer")}
-                      className="flex-1 py-3 px-5 rounded-xl font-bold bg-slate-850 hover:bg-slate-800 text-slate-200 hover:text-white transition border border-slate-750 flex items-center justify-center gap-2 text-sm shadow-md"
+                      onClick={() => triggerIcsDownload("user")}
+                      className="flex-1 py-3 px-5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center justify-center gap-2 text-sm shadow-md"
                     >
-                      <span>💾</span> Download Combined .ICS
-                    </button>
-                    
-                    <button
-                      onClick={() => setShowShareModal(true)}
-                      className="flex-1 py-3 px-5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-indigo-600/20"
-                    >
-                      <span>🔗</span> Generate Social Link & QR
+                      <span>💾</span> Export Calendar (.ICS)
                     </button>
                   </div>
                 )}
@@ -547,99 +561,6 @@ export default function Home() {
                     Close
                   </button>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Calendar Selector Modal */}
-      {showCalendarModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
-            <button
-              onClick={() => setShowCalendarModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 text-xl font-bold p-1 rounded-lg hover:bg-slate-800 transition-colors"
-              aria-label="Close modal"
-            >
-              ✕
-            </button>
-
-            <div className="text-center space-y-5">
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold text-white">Add Events to Calendar</h3>
-                <p className="text-xs text-slate-400">Select your preferred calendar provider below.</p>
-              </div>
-
-              <div className="space-y-2.5 pt-2">
-                {/* Google Calendar */}
-                <button
-                  onClick={() => {
-                    triggerIcsDownload("google");
-                    setShowCalendarModal(false);
-                  }}
-                  className="w-full py-3 px-4 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 hover:text-white transition flex items-center gap-3 text-left"
-                >
-                  <span className="text-base">📅</span>
-                  <div>
-                    <p className="font-bold">Google Calendar</p>
-                    <p className="text-[10px] text-slate-500">Download .ICS file to add to Google Calendar</p>
-                  </div>
-                </button>
-
-                {/* Apple Calendar */}
-                <button
-                  onClick={() => {
-                    triggerIcsDownload("apple");
-                    setShowCalendarModal(false);
-                  }}
-                  className="w-full py-3 px-4 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 hover:text-white transition flex items-center gap-3 text-left"
-                >
-                  <span className="text-base">🍎</span>
-                  <div>
-                    <p className="font-bold">Apple Calendar (Mac/iPhone)</p>
-                    <p className="text-[10px] text-slate-500">Download .ICS file to add events immediately</p>
-                  </div>
-                </button>
-
-                {/* Samsung Calendar */}
-                <button
-                  onClick={() => {
-                    triggerIcsDownload("samsung");
-                    setShowCalendarModal(false);
-                  }}
-                  className="w-full py-3 px-4 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 hover:text-white transition flex items-center gap-3 text-left"
-                >
-                  <span className="text-base">📱</span>
-                  <div>
-                    <p className="font-bold">Samsung / Android Calendar</p>
-                    <p className="text-[10px] text-slate-500">Download .ICS file to sync natively</p>
-                  </div>
-                </button>
-
-                {/* Microsoft Outlook */}
-                <button
-                  onClick={() => {
-                    triggerIcsDownload("outlook");
-                    setShowCalendarModal(false);
-                  }}
-                  className="w-full py-3 px-4 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 hover:text-white transition flex items-center gap-3 text-left"
-                >
-                  <span className="text-base">💻</span>
-                  <div>
-                    <p className="font-bold">Microsoft Outlook</p>
-                    <p className="text-[10px] text-slate-500">Download .ICS file to import</p>
-                  </div>
-                </button>
-              </div>
-
-              <div className="pt-2">
-                <button
-                  onClick={() => setShowCalendarModal(false)}
-                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition"
-                >
-                  Cancel
-                </button>
               </div>
             </div>
           </div>
