@@ -42,7 +42,26 @@ export default function Home() {
         const parsedEvents = JSON.parse(decodedString);
         if (Array.isArray(parsedEvents) && parsedEvents.length > 0) {
           setEvents(parsedEvents);
-          setErrorMessage("Event schedule imported! Review and click 'Export Calendar' below to add them to your calendar.");
+          
+          // Generate & trigger immediate download of the calendar .ics file to reduce friction
+          let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//FlyerToCalendar//NONSGML v1.0//EN\n";
+          parsedEvents.forEach(event => {
+            const cleanDate = (event.date || "").replace(/-/g, "");
+            const startClean = (event.startTime || event.start_time || "12:00").replace(/:/g, "") + "00";
+            const endClean = (event.endTime || event.end_time || "13:00").replace(/:/g, "") + "00";
+            icsContent += `BEGIN:VEVENT\nSUMMARY:${event.title || "Event"} - ${event.artist || ""}\nDTSTART:${cleanDate}T${startClean}\nDTEND:${cleanDate}T${endClean}\nLOCATION:${event.room || event.location || ""}\nEND:VEVENT\n`;
+          });
+          icsContent += "END:VCALENDAR";
+
+          const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "festival-events.ics";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          setErrorMessage("Importing schedule... Your calendar file (.ics) has been downloaded automatically. If the download did not start, click 'Export Calendar' below.");
         }
       } catch (e) {
         console.error("Failed to decode imported events", e);
