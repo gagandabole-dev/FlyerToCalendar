@@ -175,7 +175,7 @@ export default function Home() {
   };
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText("https://flyertocalendar.com/shared/bachata-greece-festival-2026");
+    navigator.clipboard.writeText(sharedUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -219,8 +219,8 @@ export default function Home() {
     document.body.removeChild(downloadLink);
   };
 
-  // Generate dynamic URL-encoded QR code API URL pointing to the shared link
-  const sharedUrl = "https://flyertocalendar.com/shared/bachata-greece-festival-2026";
+  // Generate dynamic URL-encoded QR code API URL pointing to the user's actual domain
+  const sharedUrl = "https://flyerto-calendar-app.vercel.app/";
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sharedUrl)}&color=0f172a&bgcolor=ffffff`;
 
   return (
@@ -570,7 +570,7 @@ export default function Home() {
                     ⚡ FlyerToCalendar
                   </text>
                   <text x="130" y="315" fill="#64748b" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
-                    www.flyertocalendar.com
+                    flyerto-calendar-app.vercel.app
                   </text>
                 </svg>
               </div>
