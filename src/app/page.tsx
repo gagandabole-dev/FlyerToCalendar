@@ -24,8 +24,9 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [submittedEmail, setSubmittedEmail] = useState(false);
 
-  // Sharing Modal
+  // Sharing Modal & Calendar Selector Modal
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showCalendarModal, setShowCalendarModal] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -112,7 +113,6 @@ export default function Home() {
       }
 
       if (successCount === files.length) {
-        // Parse & normalise dates/times
         const formattedEvents = allExtractedEvents.map((evt) => ({
           title: evt.title || "Untitled Event",
           artist: evt.artist || "",
@@ -132,7 +132,6 @@ export default function Home() {
     }
   };
 
-  // Inline event edits
   const updateEventField = (index: number, field: keyof CalendarEvent, value: string) => {
     const updated = [...events];
     updated[index] = { ...updated[index], [field]: value };
@@ -156,7 +155,7 @@ export default function Home() {
   };
 
   // Calendar Exports
-  const triggerIcsDownload = () => {
+  const triggerIcsDownload = (calendarName?: string) => {
     if (events.length === 0) return;
     
     let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//FlyerToCalendar//NONSGML v1.0//EN\n";
@@ -171,23 +170,31 @@ export default function Home() {
     const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = userMode === "organizer" ? "organizer-festival-schedule.ics" : "dance-events.ics";
+    link.download = calendarName ? `${calendarName}-schedule.ics` : "festival-events.ics";
     link.click();
   };
 
-  const buildGoogleCalendarUrl = (event: CalendarEvent) => {
-    const cleanDate = event.date.replace(/-/g, "");
-    const startClean = event.startTime.replace(/:/g, "") + "00";
-    const endClean = event.endTime.replace(/:/g, "") + "00";
-    const dates = `${cleanDate}T${startClean}/${cleanDate}T${endClean}`;
-    
-    const url = new URL("https://calendar.google.com/calendar/render");
-    url.searchParams.append("action", "TEMPLATE");
-    url.searchParams.append("text", `${event.title} - ${event.artist}`);
-    url.searchParams.append("dates", dates);
-    url.searchParams.append("details", `Stage/Room: ${event.room}`);
-    url.searchParams.append("location", event.room);
-    return url.toString();
+  const openGoogleCalendarImport = () => {
+    // Generate Google Calendar render template link if single event
+    if (events.length === 1) {
+      const event = events[0];
+      const cleanDate = event.date.replace(/-/g, "");
+      const startClean = event.startTime.replace(/:/g, "") + "00";
+      const endClean = event.endTime.replace(/:/g, "") + "00";
+      const dates = `${cleanDate}T${startClean}/${cleanDate}T${endClean}`;
+      
+      const url = new URL("https://calendar.google.com/calendar/render");
+      url.searchParams.append("action", "TEMPLATE");
+      url.searchParams.append("text", `${event.title} - ${event.artist}`);
+      url.searchParams.append("dates", dates);
+      url.searchParams.append("details", `Stage/Room: ${event.room}`);
+      url.searchParams.append("location", event.room);
+      window.open(url.toString(), "_blank");
+    } else {
+      // For multiple events, download ICS and guide user to settings
+      triggerIcsDownload("google");
+      window.open("https://calendar.google.com/calendar/r/settings/export", "_blank");
+    }
   };
 
   const handleCopyLink = () => {
@@ -266,7 +273,7 @@ export default function Home() {
         {/* Primary Interactive Card Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left Column: Dropzone uploads (4 cols or 5 cols) */}
+          {/* Left Column: Dropzone uploads */}
           <div className="lg:col-span-5 bg-slate-900/60 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md">
             <h2 className="text-lg font-bold text-white text-left flex items-center gap-2">
               <span>{userMode === "user" ? "📸" : "📚"}</span>
@@ -344,7 +351,7 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Right Column: Editable review list (7 cols) */}
+          {/* Right Column: Editable review list */}
           <div className="lg:col-span-7 bg-slate-900/60 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md flex flex-col min-h-[420px]">
             <div className="flex items-center justify-between border-b border-slate-800/85 pb-4 shrink-0">
               <h2 className="text-lg font-bold text-white flex items-center gap-2">
@@ -353,10 +360,10 @@ export default function Home() {
               </h2>
               {events.length > 0 && (
                 <button
-                  onClick={addCustomEvent}
-                  className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-750 text-xs font-semibold rounded-lg text-slate-200 hover:text-white transition flex items-center gap-1"
+                  onClick={() => setShowCalendarModal(true)}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg text-white transition shadow-md flex items-center gap-1.5"
                 >
-                  ➕ Add Event
+                  📅 Add events to your calendar
                 </button>
               )}
             </div>
@@ -374,17 +381,9 @@ export default function Home() {
               <div className="flex-1 flex flex-col min-h-0 space-y-4">
                 
                 {/* Scrolling Grid */}
-                <div className="max-h-[460px] overflow-y-auto space-y-3 pr-1 text-left">
+                <div className="max-h-[440px] overflow-y-auto space-y-3 pr-1 text-left">
                   {events.map((event, idx) => (
                     <div key={idx} className="bg-slate-950 border border-slate-850/80 hover:border-slate-800 rounded-xl p-4 space-y-3 relative group transition">
-                      <button
-                        onClick={() => deleteEvent(idx)}
-                        className="absolute top-3 right-3 text-slate-500 hover:text-rose-400 p-1 rounded-lg hover:bg-slate-900 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-                        title="Remove event"
-                      >
-                        ✕ Remove
-                      </button>
-
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div className="sm:col-span-2">
                           <label className="text-[10px] font-bold tracking-wider text-slate-500 uppercase block mb-1">Session / Class Title</label>
@@ -444,47 +443,53 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Google Calendar Direct Sync for normal users */}
-                      {userMode === "user" && (
-                        <div className="pt-2 flex justify-end">
-                          <a
-                            href={buildGoogleCalendarUrl(event)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 hover:underline"
-                          >
-                            📅 Add Event to Google Calendar
-                          </a>
-                        </div>
-                      )}
+                      {/* Row Action Panel (Persistent Visible Remove Button) */}
+                      <div className="pt-2 flex justify-end border-t border-slate-900/50">
+                        <button
+                          onClick={() => deleteEvent(idx)}
+                          className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 hover:underline transition"
+                        >
+                          🗑️ Remove Event
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Final Exports panel */}
-                <div className="pt-4 border-t border-slate-850 flex flex-col sm:flex-row gap-3">
+                {/* Add custom event at the bottom of the list */}
+                <div className="flex justify-start pt-2">
                   <button
-                    onClick={triggerIcsDownload}
-                    className="flex-1 py-3 px-5 rounded-xl font-bold bg-slate-850 hover:bg-slate-800 text-slate-200 hover:text-white transition border border-slate-750 flex items-center justify-center gap-2 text-sm shadow-md"
+                    onClick={addCustomEvent}
+                    className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-750 text-xs font-semibold rounded-lg text-slate-200 hover:text-white transition flex items-center gap-1"
                   >
-                    <span>💾</span> {userMode === "organizer" ? "Download Combined .ICS" : "Export Calendar (.ICS)"}
+                    ➕ Add Custom Event
                   </button>
-                  
-                  {userMode === "organizer" && (
+                </div>
+
+                {/* Organizer exports panel */}
+                {userMode === "organizer" && (
+                  <div className="pt-4 border-t border-slate-850 flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={() => triggerIcsDownload("organizer")}
+                      className="flex-1 py-3 px-5 rounded-xl font-bold bg-slate-850 hover:bg-slate-800 text-slate-200 hover:text-white transition border border-slate-750 flex items-center justify-center gap-2 text-sm shadow-md"
+                    >
+                      <span>💾</span> Download Combined .ICS
+                    </button>
+                    
                     <button
                       onClick={() => setShowShareModal(true)}
                       className="flex-1 py-3 px-5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center justify-center gap-2 text-sm shadow-lg shadow-indigo-600/20"
                     >
                       <span>🔗</span> Generate Social Link & QR
                     </button>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
 
-        {/* Lead waitlist banner (optional B2B section) */}
+        {/* Lead waitlist banner */}
         <div className="bg-slate-900/40 border border-slate-850 rounded-2xl p-6 text-center space-y-4 backdrop-blur-md">
           <h2 className="text-xl font-bold text-white">Embed FlyerToCalendar API</h2>
           <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
@@ -531,7 +536,7 @@ export default function Home() {
                 <p className="text-xs text-slate-400">Share your live schedule on Instagram, Facebook, and link-in-bios.</p>
               </div>
 
-              {/* QR Code Graphic (Styled Vector Mock SVG) */}
+              {/* QR Code Graphic */}
               <div className="bg-white p-4 rounded-xl max-w-[180px] mx-auto shadow-lg">
                 <svg viewBox="0 0 100 100" className="w-full h-full text-slate-900">
                   <path fill="currentColor" d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 0h20v10H40zM50 20h10v10H50zM30 40h10v20H30zM50 40h20v10H50zM80 40h20v20H80zM40 70h10v30H40zM60 80h30v10H60zM70 90h10v10H70z" />
@@ -565,6 +570,101 @@ export default function Home() {
                     Close
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Calendar Selector Modal (Google, Apple, Samsung, Outlook options) */}
+      {showCalendarModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
+            <button
+              onClick={() => setShowCalendarModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 text-xl font-bold p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              aria-label="Close modal"
+            >
+              ✕
+            </button>
+
+            <div className="text-center space-y-5">
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold text-white">Add Events to Calendar</h3>
+                <p className="text-xs text-slate-400">Select your preferred calendar provider below.</p>
+              </div>
+
+              <div className="space-y-2.5 pt-2">
+                {/* Google Calendar */}
+                <button
+                  onClick={() => {
+                    openGoogleCalendarImport();
+                    setShowCalendarModal(false);
+                  }}
+                  className="w-full py-3 px-4 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 hover:text-white transition flex items-center gap-3 text-left"
+                >
+                  <span className="text-base">📅</span>
+                  <div>
+                    <p className="font-bold">Google Calendar</p>
+                    <p className="text-[10px] text-slate-500">
+                      {events.length === 1 ? "Sync event directly" : "Download ICS & import to Google"}
+                    </p>
+                  </div>
+                </button>
+
+                {/* Apple Calendar */}
+                <button
+                  onClick={() => {
+                    triggerIcsDownload("apple");
+                    setShowCalendarModal(false);
+                  }}
+                  className="w-full py-3 px-4 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 hover:text-white transition flex items-center gap-3 text-left"
+                >
+                  <span className="text-base">🍎</span>
+                  <div>
+                    <p className="font-bold">Apple Calendar (Mac/iPhone)</p>
+                    <p className="text-[10px] text-slate-500">Download .ICS file to add events immediately</p>
+                  </div>
+                </button>
+
+                {/* Samsung Calendar */}
+                <button
+                  onClick={() => {
+                    triggerIcsDownload("samsung");
+                    setShowCalendarModal(false);
+                  }}
+                  className="w-full py-3 px-4 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 hover:text-white transition flex items-center gap-3 text-left"
+                >
+                  <span className="text-base">📱</span>
+                  <div>
+                    <p className="font-bold">Samsung / Android Calendar</p>
+                    <p className="text-[10px] text-slate-500">Download .ICS file to sync natively</p>
+                  </div>
+                </button>
+
+                {/* Microsoft Outlook */}
+                <button
+                  onClick={() => {
+                    triggerIcsDownload("outlook");
+                    setShowCalendarModal(false);
+                  }}
+                  className="w-full py-3 px-4 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 hover:text-white transition flex items-center gap-3 text-left"
+                >
+                  <span className="text-base">💻</span>
+                  <div>
+                    <p className="font-bold">Microsoft Outlook</p>
+                    <p className="text-[10px] text-slate-500">Download .ICS file to import</p>
+                  </div>
+                </button>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  onClick={() => setShowCalendarModal(false)}
+                  className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition"
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>
