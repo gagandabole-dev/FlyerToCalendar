@@ -31,6 +31,46 @@ export default function Home() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Compact serialization helper functions for scan-friendly low-density QR codes
+  const encodeEvents = (eventsList: CalendarEvent[]): string => {
+    try {
+      const flatString = eventsList.map(e => {
+        const t = (e.title || "Untitled").replace(/[|;]/g, " ");
+        const a = (e.artist || "").replace(/[|;]/g, " ");
+        const d = e.date || "";
+        const s = e.startTime || "";
+        const end = e.endTime || "";
+        const r = (e.room || "").replace(/[|;]/g, " ");
+        return `${t}|${a}|${d}|${s}|${end}|${r}`;
+      }).join(";");
+      return btoa(unescape(encodeURIComponent(flatString)));
+    } catch (e) {
+      console.error("Failed to encode events", e);
+      return "";
+    }
+  };
+
+  const decodeEvents = (encoded: string): CalendarEvent[] => {
+    try {
+      const flatString = decodeURIComponent(escape(atob(encoded)));
+      if (!flatString) return [];
+      return flatString.split(";").map(row => {
+        const [title, artist, date, startTime, endTime, room] = row.split("|");
+        return {
+          title: title || "Untitled Event",
+          artist: artist || "",
+          date: date || new Date().toISOString().split("T")[0],
+          startTime: startTime || "12:00",
+          endTime: endTime || "13:00",
+          room: room || "Main Stage"
+        };
+      });
+    } catch (e) {
+      console.error("Failed to decode events", e);
+      return [];
+    }
+  };
+
   // Client-side query parameters import check
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -38,18 +78,17 @@ export default function Home() {
     const importData = params.get("import");
     if (importData) {
       try {
-        const decodedString = decodeURIComponent(escape(atob(importData)));
-        const parsedEvents = JSON.parse(decodedString);
-        if (Array.isArray(parsedEvents) && parsedEvents.length > 0) {
+        const parsedEvents = decodeEvents(importData);
+        if (parsedEvents.length > 0) {
           setEvents(parsedEvents);
           
           // Generate & trigger immediate download of the calendar .ics file to reduce friction
           let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//FlyerToCalendar//NONSGML v1.0//EN\n";
           parsedEvents.forEach(event => {
             const cleanDate = (event.date || "").replace(/-/g, "");
-            const startClean = (event.startTime || event.start_time || "12:00").replace(/:/g, "") + "00";
-            const endClean = (event.endTime || event.end_time || "13:00").replace(/:/g, "") + "00";
-            icsContent += `BEGIN:VEVENT\nSUMMARY:${event.title || "Event"} - ${event.artist || ""}\nDTSTART:${cleanDate}T${startClean}\nDTEND:${cleanDate}T${endClean}\nLOCATION:${event.room || event.location || ""}\nEND:VEVENT\n`;
+            const startClean = (event.startTime || "12:00").replace(/:/g, "") + "00";
+            const endClean = (event.endTime || "13:00").replace(/:/g, "") + "00";
+            icsContent += `BEGIN:VEVENT\nSUMMARY:${event.title} - ${event.artist}\nDTSTART:${cleanDate}T${startClean}\nDTEND:${cleanDate}T${endClean}\nLOCATION:${event.room}\nEND:VEVENT\n`;
           });
           icsContent += "END:VCALENDAR";
 
@@ -64,7 +103,7 @@ export default function Home() {
           setErrorMessage("Importing schedule... Your calendar file (.ics) has been downloaded automatically. If the download did not start, click 'Export Calendar' below.");
         }
       } catch (e) {
-        console.error("Failed to decode imported events", e);
+        console.error("Failed to parse imported events", e);
       }
     }
   }, []);
@@ -257,16 +296,13 @@ export default function Home() {
     document.body.removeChild(downloadLink);
   };
 
-  // Generate dynamic Base64 sharing link containing the events state
+  // Generate dynamic compressed Base64 sharing link containing the events state
   const getSharedUrl = () => {
     if (events.length === 0) return "https://flyerto-calendar-app.vercel.app/";
-    try {
-      const jsonString = JSON.stringify(events);
-      const encoded = btoa(unescape(encodeURIComponent(jsonString)));
-      return `https://flyerto-calendar-app.vercel.app/?import=${encoded}`;
-    } catch (e) {
-      return "https://flyerto-calendar-app.vercel.app/";
-    }
+    const encoded = encodeEvents(events);
+    return encoded 
+      ? `https://flyerto-calendar-app.vercel.app/?import=${encoded}`
+      : "https://flyerto-calendar-app.vercel.app/";
   };
 
   const sharedUrl = getSharedUrl();
