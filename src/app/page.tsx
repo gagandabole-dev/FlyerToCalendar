@@ -27,6 +27,7 @@ export default function Home() {
   // Sharing Modal
   const [showShareModal, setShowShareModal] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [customLabel, setCustomLabel] = useState("Bachata Greece Festival Schedule");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -202,6 +203,25 @@ export default function Home() {
     setEvents([]);
     setErrorMessage(null);
   };
+
+  // Download dynamically generated styled SVG QR Flyer
+  const downloadSvgFlyer = () => {
+    const svgEl = document.getElementById("qr-flyer-svg");
+    if (!svgEl) return;
+    const svgString = new XMLSerializer().serializeToString(svgEl);
+    const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+    const svgUrl = URL.createObjectURL(svgBlob);
+    const downloadLink = document.createElement("a");
+    downloadLink.href = svgUrl;
+    downloadLink.download = `${customLabel.toLowerCase().replace(/\s+/g, "-")}-qr-flyer.svg`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  };
+
+  // Generate dynamic URL-encoded QR code API URL pointing to the shared link
+  const sharedUrl = "https://flyertocalendar.com/shared/bachata-greece-festival-2026";
+  const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sharedUrl)}&color=0f172a&bgcolor=ffffff`;
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-start p-4 md:p-8 selection:bg-indigo-500 selection:text-white">
@@ -527,18 +547,49 @@ export default function Home() {
                 <p className="text-xs text-slate-400">Share your live schedule on Instagram, Facebook, and link-in-bios.</p>
               </div>
 
-              {/* QR Code Graphic */}
-              <div className="bg-white p-4 rounded-xl max-w-[180px] mx-auto shadow-lg">
-                <svg viewBox="0 0 100 100" className="w-full h-full text-slate-900">
-                  <path fill="currentColor" d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 0h20v10H40zM50 20h10v10H50zM30 40h10v20H30zM50 40h20v10H50zM80 40h20v20H80zM40 70h10v30H40zM60 80h30v10H60zM70 90h10v10H70z" />
-                  <rect x="42" y="42" width="16" height="16" rx="4" fill="#4f46e5" />
-                  <text x="50" y="52" fill="white" fontSize="8" fontWeight="bold" textAnchor="middle">F2C</text>
+              {/* Dynamic Branded SVG Card with Editable Label & Actual Scannable QR Code */}
+              <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 shadow-inner flex justify-center">
+                <svg id="qr-flyer-svg" width="260" height="350" viewBox="0 0 260 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Background rect */}
+                  <rect width="260" height="350" rx="16" fill="#0f172a"/>
+                  <rect x="1" y="1" width="258" height="348" rx="15" stroke="#1e293b" strokeWidth="2"/>
+                  
+                  {/* Styled Header Text */}
+                  <text x="130" y="45" fill="#ffffff" fontFamily="sans-serif" fontSize="13" fontWeight="bold" textAnchor="middle">
+                    {customLabel || "Event Schedule"}
+                  </text>
+                  <text x="130" y="65" fill="#94a3b8" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
+                    Scan to sync live schedule
+                  </text>
+                  
+                  {/* Real Scannable QR Code Image */}
+                  <image href={qrCodeImageUrl} x="45" y="85" width="170" height="170" />
+                  
+                  {/* Footer branding */}
+                  <text x="130" y="295" fill="#818cf8" fontFamily="sans-serif" fontSize="11" fontWeight="bold" textAnchor="middle">
+                    ⚡ FlyerToCalendar
+                  </text>
+                  <text x="130" y="315" fill="#64748b" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
+                    www.flyertocalendar.com
+                  </text>
                 </svg>
+              </div>
+
+              {/* Editable Label Form Input */}
+              <div className="space-y-2 text-left">
+                <label className="text-[10px] font-bold tracking-wider text-slate-500 uppercase block">Custom QR Label Text</label>
+                <input
+                  type="text"
+                  value={customLabel}
+                  onChange={(e) => setCustomLabel(e.target.value)}
+                  placeholder="e.g. Bachata King Festival Schedule"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                />
               </div>
 
               <div className="space-y-3">
                 <div className="bg-slate-950 p-3 rounded-lg border border-slate-850 flex items-center justify-between gap-3 text-left">
-                  <span className="text-xs font-mono text-indigo-400 truncate">https://flyertocalendar.com/shared/bachata-greece-festival-2026</span>
+                  <span className="text-xs font-mono text-indigo-400 truncate">{sharedUrl}</span>
                   <button
                     onClick={handleCopyLink}
                     className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-md border border-slate-700 text-slate-200 hover:text-white transition shrink-0"
@@ -547,12 +598,21 @@ export default function Home() {
                   </button>
                 </div>
 
-                <div className="pt-2 flex gap-2">
+                <div className="pt-2 flex flex-col sm:flex-row gap-2">
                   <button
-                    onClick={() => alert("Social media sharing assets generated & copied to clipboard.")}
-                    className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow-md"
+                    onClick={downloadSvgFlyer}
+                    className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow-md flex items-center justify-center gap-1.5"
                   >
-                    📱 Copy Instagram Asset
+                    💾 Download QR Card
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`Scan to view the live schedule for ${customLabel}: ${sharedUrl}`);
+                      alert("Social media share copy copied to clipboard!");
+                    }}
+                    className="flex-1 py-2.5 bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-750 rounded-lg text-xs font-bold transition"
+                  >
+                    📱 Copy Share Text
                   </button>
                   <button
                     onClick={() => setShowShareModal(false)}
