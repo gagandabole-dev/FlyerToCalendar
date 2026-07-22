@@ -174,29 +174,6 @@ export default function Home() {
     link.click();
   };
 
-  const openGoogleCalendarImport = () => {
-    // Generate Google Calendar render template link if single event
-    if (events.length === 1) {
-      const event = events[0];
-      const cleanDate = event.date.replace(/-/g, "");
-      const startClean = event.startTime.replace(/:/g, "") + "00";
-      const endClean = event.endTime.replace(/:/g, "") + "00";
-      const dates = `${cleanDate}T${startClean}/${cleanDate}T${endClean}`;
-      
-      const url = new URL("https://calendar.google.com/calendar/render");
-      url.searchParams.append("action", "TEMPLATE");
-      url.searchParams.append("text", `${event.title} - ${event.artist}`);
-      url.searchParams.append("dates", dates);
-      url.searchParams.append("details", `Stage/Room: ${event.room}`);
-      url.searchParams.append("location", event.room);
-      window.open(url.toString(), "_blank");
-    } else {
-      // For multiple events, download ICS and guide user to settings
-      triggerIcsDownload("google");
-      window.open("https://calendar.google.com/calendar/r/settings/export", "_blank");
-    }
-  };
-
   const handleCopyLink = () => {
     navigator.clipboard.writeText("https://flyertocalendar.com/shared/bachata-greece-festival-2026");
     setCopied(true);
@@ -270,7 +247,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Primary Interactive Card Grid */}
+        {/* Primary Interactive Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
           {/* Left Column: Dropzone uploads */}
@@ -576,7 +553,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Calendar Selector Modal (Google, Apple, Samsung, Outlook options) */}
+      {/* Calendar Selector Modal */}
       {showCalendarModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl relative">
@@ -598,7 +575,7 @@ export default function Home() {
                 {/* Google Calendar */}
                 <button
                   onClick={() => {
-                    openGoogleCalendarImport();
+                    triggerIcsDownload("google");
                     setShowCalendarModal(false);
                   }}
                   className="w-full py-3 px-4 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl text-xs font-semibold text-slate-200 hover:text-white transition flex items-center gap-3 text-left"
@@ -606,9 +583,7 @@ export default function Home() {
                   <span className="text-base">📅</span>
                   <div>
                     <p className="font-bold">Google Calendar</p>
-                    <p className="text-[10px] text-slate-500">
-                      {events.length === 1 ? "Sync event directly" : "Download ICS & import to Google"}
-                    </p>
+                    <p className="text-[10px] text-slate-500">Download .ICS file to add to Google Calendar</p>
                   </div>
                 </button>
 
