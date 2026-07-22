@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface CalendarEvent {
   title: string;
@@ -30,6 +30,25 @@ export default function Home() {
   const [customLabel, setCustomLabel] = useState("Bachata Greece Festival Schedule");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Client-side query parameters import check
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const importData = params.get("import");
+    if (importData) {
+      try {
+        const decodedString = decodeURIComponent(escape(atob(importData)));
+        const parsedEvents = JSON.parse(decodedString);
+        if (Array.isArray(parsedEvents) && parsedEvents.length > 0) {
+          setEvents(parsedEvents);
+          setErrorMessage("Event schedule imported! Review and click 'Export Calendar' below to add them to your calendar.");
+        }
+      } catch (e) {
+        console.error("Failed to decode imported events", e);
+      }
+    }
+  }, []);
 
   const startCooldown = () => {
     setCooldown(5);
@@ -219,8 +238,19 @@ export default function Home() {
     document.body.removeChild(downloadLink);
   };
 
-  // Generate dynamic URL-encoded QR code API URL pointing to the user's actual domain
-  const sharedUrl = "https://flyerto-calendar-app.vercel.app/";
+  // Generate dynamic Base64 sharing link containing the events state
+  const getSharedUrl = () => {
+    if (events.length === 0) return "https://flyerto-calendar-app.vercel.app/";
+    try {
+      const jsonString = JSON.stringify(events);
+      const encoded = btoa(unescape(encodeURIComponent(jsonString)));
+      return `https://flyerto-calendar-app.vercel.app/?import=${encoded}`;
+    } catch (e) {
+      return "https://flyerto-calendar-app.vercel.app/";
+    }
+  };
+
+  const sharedUrl = getSharedUrl();
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sharedUrl)}&color=0f172a&bgcolor=ffffff`;
 
   return (
@@ -318,7 +348,7 @@ export default function Home() {
               </div>
             )}
 
-            {/* Error notifications */}
+            {/* Error / Notice notifications */}
             {errorMessage && (
               <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-sm text-left flex items-start gap-3">
                 <span className="text-lg">⏳</span>
