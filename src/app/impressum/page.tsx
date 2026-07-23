@@ -24,37 +24,39 @@ export default function Impressum() {
             Impressum
           </h1>
           <p className="text-sm text-slate-400">
-            Angaben gemäß § 5 TMG.
+            Angaben gemäß § 5 DDG.
           </p>
 
           <hr className="border-slate-800" />
 
           {/* Contact Details */}
-          <div className="space-y-4 text-sm text-slate-350">
+          <div className="space-y-5 text-sm text-slate-350">
             <div>
               <h2 className="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Diensteanbieter / Betreiber</h2>
-              <p className="font-semibold text-slate-200">[Founder Name]</p>
-              <p>[Berlin Address Line 1]</p>
-              <p>[Berlin ZIP Code & City]</p>
+              <p className="font-semibold text-slate-200 text-base">Gagan Dabole</p>
+              <p>John-Schehr-Straße 1</p>
+              <p>10407 Berlin</p>
               <p>Germany</p>
             </div>
 
             <div>
+              <h2 className="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Rechtsform</h2>
+              <p>Einzelunternehmen</p>
+              <p className="text-slate-400 text-xs mt-1">
+                Gemäß § 19 UStG (Kleinunternehmerregelung) wird keine Umsatzsteuer ausgewiesen und berechnet.
+              </p>
+            </div>
+
+            <div>
               <h2 className="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Kontakt</h2>
-              <p>E-Mail: <span className="text-indigo-400 font-semibold">[Contact Email]</span></p>
+              <p>E-Mail: <a href="mailto:gagan.dabole@gmail.com" className="text-indigo-400 font-semibold hover:underline">gagan.dabole@gmail.com</a></p>
             </div>
 
             <div>
-              <h2 className="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Umsatzsteuer-ID</h2>
-              <p>Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:</p>
-              <p className="font-semibold text-slate-250">USt-IdNr. ausstehend / pending</p>
-            </div>
-
-            <div>
-              <h2 className="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2>
-              <p className="font-semibold text-slate-200">[Founder Name]</p>
-              <p>[Berlin Address Line 1]</p>
-              <p>[Berlin ZIP Code & City]</p>
+              <h2 className="text-xs font-bold tracking-wider text-slate-500 uppercase mb-1">Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+              <p className="font-semibold text-slate-200">Gagan Dabole</p>
+              <p>John-Schehr-Straße 1</p>
+              <p>10407 Berlin</p>
             </div>
           </div>
 
@@ -67,7 +69,7 @@ export default function Impressum() {
             <div className="space-y-2">
               <h3 className="font-bold text-slate-400">Haftung für Inhalte</h3>
               <p>
-                Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt.
+                Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Verpflichtungen zur erhaltenen Löschung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt.
               </p>
             </div>
 
