@@ -23,6 +23,7 @@ export default function Home() {
   const [flyerDateContext, setFlyerDateContext] = useState("");
   const [showDatePickerModal, setShowDatePickerModal] = useState(false);
   const [tempDate, setTempDate] = useState("");
+  const [tempExtractedEvents, setTempExtractedEvents] = useState<CalendarEvent[]>([]);
   
   // Organizer waitlist
   const [email, setEmail] = useState("");
@@ -207,7 +208,15 @@ export default function Home() {
           endTime: evt.endTime || evt.end_time || "13:00",
           room: evt.room || evt.location || "Main Stage",
         }));
-        setEvents(formattedEvents);
+
+        const hasMissingDate = formattedEvents.some((e) => e.date === "date_missing");
+        if (hasMissingDate) {
+          setTempExtractedEvents(formattedEvents);
+          setTempDate("");
+          setShowDatePickerModal(true);
+        } else {
+          setEvents(formattedEvents);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -460,14 +469,7 @@ export default function Home() {
             )}
 
             <button
-              onClick={() => {
-                if (!flyerDateContext && files.length > 0) {
-                  setTempDate("");
-                  setShowDatePickerModal(true);
-                } else {
-                  handleUpload();
-                }
-              }}
+              onClick={() => handleUpload()}
               disabled={files.length === 0 || loading || cooldown > 0}
               className="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2"
             >
@@ -730,7 +732,7 @@ export default function Home() {
               <span className="text-4xl block">📅</span>
               <h3 className="text-lg font-bold text-white">Event Date Request</h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                This flyer graphic might not list calendar dates explicitly. Select a date to automatically assign it to all extracted events.
+                This flyer graphic does not list calendar dates explicitly. Select a date to automatically assign it to the extracted events.
               </p>
             </div>
  
@@ -748,26 +750,35 @@ export default function Home() {
               <button
                 onClick={() => {
                   if (tempDate) {
+                    const finalEvents = tempExtractedEvents.map(e => ({
+                      ...e,
+                      date: e.date === "date_missing" ? tempDate : e.date
+                    }));
+                    setEvents(finalEvents);
                     setFlyerDateContext(tempDate);
-                    handleUpload(tempDate);
+                    setShowDatePickerModal(false);
                   } else {
-                    alert("Please select a date, or click 'Skip' to parse without a date context.");
+                    alert("Please select a date, or click 'Skip' to set today's date.");
                   }
-                  setShowDatePickerModal(false);
                 }}
                 disabled={!tempDate}
                 className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/20"
               >
-                Apply Date & Convert
+                Apply Date
               </button>
               <button
                 onClick={() => {
+                  const todayStr = new Date().toISOString().split("T")[0];
+                  const finalEvents = tempExtractedEvents.map(e => ({
+                    ...e,
+                    date: e.date === "date_missing" ? todayStr : e.date
+                  }));
+                  setEvents(finalEvents);
                   setShowDatePickerModal(false);
-                  handleUpload("");
                 }}
                 className="w-full py-2.5 bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-750 rounded-xl text-xs font-bold transition"
               >
-                Skip & Convert Anyway
+                Skip
               </button>
             </div>
           </div>

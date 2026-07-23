@@ -257,7 +257,7 @@ Deno.serve(async (req) => {
     const promptText = `Extract all scheduled event details, workshops, or performances from this flyer image.
 Target Timezone: ${timezone}.
 Current Date Context: ${new Date().toISOString()}.
-${baseDateContext ? `Flyer Date Context: ${baseDateContext}. IMPORTANT: If the flyer does not specify a specific calendar date/year but mentions weekdays (e.g. Saturday, Friday) or days (e.g. Day 1, Day 2), map those relative to this context date: ${baseDateContext}.` : ""}
+${baseDateContext ? `Flyer Date Context: ${baseDateContext}. IMPORTANT: If the flyer does not specify a specific calendar date/year but mentions weekdays (e.g. Saturday, Friday) or days (e.g. Day 1, Day 2), map those relative to this context date: ${baseDateContext}.` : `IMPORTANT: If the flyer does not specify a specific calendar date/year (e.g. it only lists weekdays or relative day numbers), set the "date" field of the returned event object to the exact literal string "date_missing" so we can prompt the user to supply it.`}
 
 Return ONLY a valid JSON array of event objects matching this schema:
 [
