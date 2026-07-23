@@ -3,9 +3,7 @@ import Stripe from "stripe";
 
 // Initialize Stripe Client with secret key or build fallback validation key
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "sk_test_51DummyKeyForBuildValidation";
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: "2025-01-27" as any,
-});
+const stripe = new Stripe(stripeSecretKey);
 
 export async function POST(request: Request) {
   try {
