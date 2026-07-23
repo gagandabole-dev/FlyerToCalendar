@@ -278,7 +278,8 @@ Return ONLY a valid JSON array of event objects matching this schema:
       }
     };
 
-    const candidateModels = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash-8b"];
+    // Valid active Gemini API models (including 3.6/3.5/2.5 flash models for 2026 context)
+    const candidateModels = ["gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash", "gemini-3.5-flash-lite"];
     let geminiRes: Response | null = null;
     let lastErrBody = "";
     let rateLimitStatus = false;
