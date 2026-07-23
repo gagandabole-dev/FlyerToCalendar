@@ -128,7 +128,7 @@ export default function Home() {
 
     setErrorMessage(null);
 
-    const maxFiles = userMode === "organizer" ? 10 : 1;
+    const maxFiles = 1;
     const newFiles = [...files, ...selectedFiles].slice(0, maxFiles);
     setFiles(newFiles);
 
@@ -357,17 +357,17 @@ export default function Home() {
           <div className="p-4 bg-slate-900/40 border border-slate-850 rounded-2xl max-w-xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-left backdrop-blur-md">
             <div className="space-y-0.5">
               <p className="text-sm font-extrabold text-white flex items-center gap-1.5">
-                <span>🔑</span> Organizer Portal
+                <span>🔑</span> Unlock Pro Features
               </p>
               <p className="text-xs text-slate-400">
-                Log in or sign up to save projects to the cloud, edit schedules, and activate passes.
+                Without signing in, you can only upload 1 image. **Sign in / Sign up** to upload up to 10 images and download your shareable QR card!
               </p>
             </div>
             <Link
               href="/login"
               className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg text-white transition shadow-md shadow-indigo-600/20 shrink-0"
             >
-              Go to Dashboard / Sign In
+              Sign In / Sign Up
             </Link>
           </div>
         )}
@@ -379,24 +379,24 @@ export default function Home() {
           <div className="lg:col-span-5 bg-slate-900/60 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md">
             <h2 className="text-lg font-bold text-white text-left flex items-center gap-2">
               <span>{userMode === "user" ? "📸" : "📚"}</span>
-              {userMode === "user" ? "Upload Flyer Graphic" : `Upload Flyer Graphics (Max ${files.length >= 10 ? files.length : 10})`}
+              {userMode === "user" ? "Upload Flyer Graphic" : "Upload Flyer Graphic (1 Image Limit)"}
             </h2>
 
             {/* Dropzone area */}
-            {previews.length < (userMode === "organizer" ? 10 : 1) ? (
+            {previews.length < 1 ? (
               <label className="border-2 border-dashed border-slate-800 hover:border-indigo-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/40 min-h-[220px] group">
                 <div className="space-y-3 text-center">
                   <div className="w-12 h-12 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center mx-auto group-hover:scale-105 transition-transform">
                     <span>➕</span>
                   </div>
                   <p className="text-sm text-slate-300 font-medium">Click to select image file</p>
-                  <p className="text-xs text-slate-500">Supports PNG, JPG, or WEBP (Up to 10)</p>
+                  <p className="text-xs text-slate-500">Supports PNG, JPG, or WEBP (1 Image Limit)</p>
                 </div>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleFileChange}
-                  multiple={userMode === "organizer"}
+                  multiple={false}
                   className="hidden"
                   ref={fileInputRef}
                 />
@@ -638,7 +638,7 @@ export default function Home() {
       {/* Share / QR Code modal for Organizers */}
       {showShareModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center space-y-6">
             <button
               onClick={() => setShowShareModal(false)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 text-xl font-bold p-1 rounded-lg hover:bg-slate-800 transition-colors"
@@ -647,105 +647,37 @@ export default function Home() {
               ✕
             </button>
 
-            <div className="text-center space-y-6">
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold text-white">Shareable Event Assets</h3>
-                <p className="text-xs text-slate-400">Share your live schedule on Instagram, Facebook, and link-in-bios.</p>
-              </div>
+            <div className="space-y-2">
+              <span className="text-4xl block">🔒</span>
+              <h3 className="text-lg font-bold text-white">QR Card Assets are Locked</h3>
+              <p className="text-xs text-slate-455 leading-relaxed">
+                To download your branded scannable QR card and upload up to 10 flyers concurrently, create a free Organizer account!
+              </p>
+            </div>
 
-              {/* Dynamic Branded SVG Card with Editable Label & Actual Scannable QR Code */}
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 shadow-inner flex justify-center">
-                <svg id="qr-flyer-svg" width="260" height="360" viewBox="0 0 260 360" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  {/* Background rect */}
-                  <rect width="260" height="360" rx="16" fill="#0f172a"/>
-                  <rect x="1" y="1" width="258" height="358" rx="15" stroke="#1e293b" strokeWidth="2"/>
-                  
-                  {/* Styled Header Text using foreignObject for text wrapping & auto-sizing */}
-                  <foreignObject x="15" y="22" width="230" height="48">
-                    <div xmlns="http://www.w3.org/1999/xhtml" style={{
-                      color: "#818cf8",
-                      fontFamily: "sans-serif",
-                      fontSize: "14px",
-                      fontWeight: "bold",
-                      textAlign: "center",
-                      lineHeight: "1.25",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}>
-                      {customLabel || "Event Schedule"}
-                    </div>
-                  </foreignObject>
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 text-left space-y-3">
+              <p className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">Pro features unlocked on sign up:</p>
+              <ul className="text-xs text-slate-300 space-y-2 list-inside list-disc">
+                <li>Upload up to 10 schedule images concurrently</li>
+                <li>Download scannable high-contrast SVG QR flyers</li>
+                <li>Edit sessions, room schedules, and artist rosters anytime</li>
+                <li>Create permanent viewer links (no huge query parameter URLs)</li>
+              </ul>
+            </div>
 
-                  {/* Subtitle */}
-                  <text x="130" y="86" fill="#94a3b8" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
-                    Scan to add the schedule to your calendar
-                  </text>
-                  
-                  {/* White background card for QR Code to pop and scan successfully */}
-                  <rect x="55" y="106" width="150" height="150" rx="8" fill="#ffffff" />
-
-                  {/* Real Scannable QR Code Image */}
-                  <image href={qrCodeImageUrl} x="60" y="111" width="140" height="140" />
-                  
-                  {/* Footer branding */}
-                  <text x="130" y="302" fill="#818cf8" fontFamily="sans-serif" fontSize="11" fontWeight="bold" textAnchor="middle">
-                    ⚡ FlyerToCalendar
-                  </text>
-                  <text x="130" y="322" fill="#64748b" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
-                    flyertocalendar.vercel.app
-                  </text>
-                </svg>
-              </div>
-
-              {/* Editable Label Form Input */}
-              <div className="space-y-2 text-left">
-                <label className="text-[10px] font-bold tracking-wider text-slate-500 uppercase block">Custom QR Label Text</label>
-                <input
-                  type="text"
-                  value={customLabel}
-                  onChange={(e) => setCustomLabel(e.target.value)}
-                  placeholder="e.g. Bachata King Festival Schedule"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-850 flex items-center justify-between gap-3 text-left">
-                  <span className="text-xs font-mono text-indigo-400 truncate">{sharedUrl}</span>
-                  <button
-                    onClick={handleCopyLink}
-                    className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-md border border-slate-700 text-slate-200 hover:text-white transition shrink-0"
-                  >
-                    {copied ? "Copied! ✅" : "Copy"}
-                  </button>
-                </div>
-
-                <div className="pt-2 flex flex-col sm:flex-row gap-2">
-                  <button
-                    onClick={downloadSvgFlyer}
-                    className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow-md flex items-center justify-center gap-1.5"
-                  >
-                    💾 Download QR Card
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(`Scan to view the live schedule for ${customLabel}: ${sharedUrl}`);
-                      alert("Social media share copy copied to clipboard!");
-                    }}
-                    className="flex-1 py-2.5 bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-750 rounded-lg text-xs font-bold transition"
-                  >
-                    📱 Copy Share Text
-                  </button>
-                  <button
-                    onClick={() => setShowShareModal(false)}
-                    className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
+            <div className="space-y-3">
+              <Link
+                href="/login"
+                className="block w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/20 text-center"
+              >
+                Sign Up / Sign In (Free)
+              </Link>
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="w-full py-2.5 bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-750 rounded-xl text-xs font-bold transition"
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
