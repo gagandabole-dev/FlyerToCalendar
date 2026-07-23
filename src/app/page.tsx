@@ -298,11 +298,11 @@ export default function Home() {
 
   // Generate dynamic compressed Base64 sharing link containing the events state
   const getSharedUrl = () => {
-    if (events.length === 0) return "https://flyerto-calendar-app.vercel.app/";
+    if (events.length === 0) return "https://flyertocalendar.vercel.app/";
     const encoded = encodeEvents(events);
     return encoded 
-      ? `https://flyerto-calendar-app.vercel.app/?import=${encoded}`
-      : "https://flyerto-calendar-app.vercel.app/";
+      ? `https://flyertocalendar.vercel.app/?import=${encoded}`
+      : "https://flyertocalendar.vercel.app/";
   };
 
   const sharedUrl = getSharedUrl();
@@ -394,7 +394,7 @@ export default function Home() {
                     </div>
                     <button
                       onClick={() => removeFile(idx)}
-                      className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors text-sm"
+                      className="text-slate-550 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors text-sm"
                     >
                       ✕
                     </button>
@@ -476,7 +476,7 @@ export default function Home() {
               <div className="flex-1 flex flex-col items-center justify-center text-slate-500 py-12">
                 <div className="text-4xl mb-3">📋</div>
                 <p className="text-sm font-medium">No events parsed yet.</p>
-                <p className="text-xs text-slate-650 text-center max-w-xs mt-1 leading-relaxed">
+                <p className="text-xs text-slate-655 text-center max-w-xs mt-1 leading-relaxed">
                   Upload {userMode === "organizer" ? "up to 10 flyers" : "your timetable flyer"} on the left panel to populate this interactive grid.
                 </p>
               </div>
@@ -507,7 +507,7 @@ export default function Home() {
                           />
                         </div>
                         <div>
-                          <label className="text-[10px] font-bold tracking-wider text-slate-500 uppercase block mb-1">Stage / Room</label>
+                          <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block mb-1">Stage / Room</label>
                           <input
                             type="text"
                             value={event.room}
@@ -644,7 +644,7 @@ export default function Home() {
                     {customLabel || "Event Schedule"}
                   </text>
                   <text x="130" y="65" fill="#94a3b8" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
-                    Scan to sync live schedule
+                    Scan to add the schedule to your calendar
                   </text>
                   
                   {/* Real Scannable QR Code Image */}
@@ -655,7 +655,7 @@ export default function Home() {
                     ⚡ FlyerToCalendar
                   </text>
                   <text x="130" y="315" fill="#64748b" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
-                    flyerto-calendar-app.vercel.app
+                    flyertocalendar.vercel.app
                   </text>
                 </svg>
               </div>
