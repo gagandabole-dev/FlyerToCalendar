@@ -25,6 +25,8 @@ export default function NewProject() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [flyerDateContext, setFlyerDateContext] = useState("");
+  const [showDatePickerModal, setShowDatePickerModal] = useState(false);
+  const [tempDate, setTempDate] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -88,38 +90,40 @@ export default function NewProject() {
     setErrorMessage(null);
   };
 
-  const handleUploadAndParse = async () => {
+  const handleUploadAndParse = async (forcedDate?: string) => {
     if (loading || cooldown > 0 || files.length === 0 || !eventName.trim()) {
       if (!eventName.trim()) {
         setErrorMessage("Please enter an Event Name first.");
       }
       return;
     }
-
+ 
     setLoading(true);
     setEvents([]);
     setErrorMessage(null);
-
+ 
+    const activeDate = forcedDate !== undefined ? forcedDate : flyerDateContext;
+ 
     try {
       const allExtractedEvents: CalendarEvent[] = [];
       let successCount = 0;
-
+ 
       for (const file of files) {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin");
-        if (flyerDateContext) {
-          formData.append("baseDate", flyerDateContext);
+        if (activeDate) {
+          formData.append("baseDate", activeDate);
         }
-
+ 
         const res = await fetch("/api/parse", {
           method: "POST",
           body: formData,
         });
-
+ 
         const data = await res.json();
         const extracted = Array.isArray(data) ? data : data.events;
-
+ 
         if (res.ok && extracted) {
           allExtractedEvents.push(...extracted);
           successCount++;
@@ -128,12 +132,12 @@ export default function NewProject() {
           break;
         }
       }
-
+ 
       if (successCount === files.length) {
         const formattedEvents = allExtractedEvents.map((evt) => ({
           title: evt.title || "Untitled Event",
           artist: evt.artist || "",
-          date: evt.date || new Date().toISOString().split("T")[0],
+          date: activeDate || evt.date || new Date().toISOString().split("T")[0],
           startTime: evt.startTime || evt.start_time || "12:00",
           endTime: evt.endTime || evt.end_time || "13:00",
           room: evt.room || evt.location || "Main Stage",
@@ -355,7 +359,18 @@ export default function NewProject() {
             )}
 
             <button
-              onClick={handleUploadAndParse}
+              onClick={() => {
+                if (!eventName.trim()) {
+                  setErrorMessage("Please enter an Event Name first.");
+                  return;
+                }
+                if (!flyerDateContext && files.length > 0) {
+                  setTempDate("");
+                  setShowDatePickerModal(true);
+                } else {
+                  handleUploadAndParse();
+                }
+              }}
               disabled={files.length === 0 || loading || cooldown > 0 || !eventName.trim()}
               className="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 text-sm"
             >
@@ -495,8 +510,67 @@ export default function NewProject() {
             )}
           </div>
         </div>
-
       </div>
+
+      {/* Date Context Request Modal */}
+      {showDatePickerModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center space-y-6">
+            <button
+              onClick={() => setShowDatePickerModal(false)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 text-xl font-bold p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              aria-label="Close modal"
+            >
+              ✕
+            </button>
+ 
+            <div className="space-y-2">
+              <span className="text-4xl block">📅</span>
+              <h3 className="text-lg font-bold text-white">Event Date Request</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                This flyer graphic might not list calendar dates explicitly. Select a date to automatically assign it to all extracted events.
+              </p>
+            </div>
+ 
+            <div className="text-left space-y-1.5">
+              <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block">Event Date</label>
+              <input
+                type="date"
+                value={tempDate}
+                onChange={(e) => setTempDate(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+              />
+            </div>
+ 
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  if (tempDate) {
+                    setFlyerDateContext(tempDate);
+                    handleUploadAndParse(tempDate);
+                  } else {
+                    alert("Please select a date, or click 'Skip' to parse without a date context.");
+                  }
+                  setShowDatePickerModal(false);
+                }}
+                disabled={!tempDate}
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/20"
+              >
+                Apply Date & Convert
+              </button>
+              <button
+                onClick={() => {
+                  setShowDatePickerModal(false);
+                  handleUploadAndParse("");
+                }}
+                className="w-full py-2.5 bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-750 rounded-xl text-xs font-bold transition"
+              >
+                Skip & Convert Anyway
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
