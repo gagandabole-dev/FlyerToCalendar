@@ -20,6 +20,7 @@ export default function Home() {
   const [cooldown, setCooldown] = useState(0);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [flyerDateContext, setFlyerDateContext] = useState("");
   
   // Organizer waitlist
   const [email, setEmail] = useState("");
@@ -172,6 +173,9 @@ export default function Home() {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin");
+        if (flyerDateContext) {
+          formData.append("baseDate", flyerDateContext);
+        }
 
         const res = await fetch("/api/parse", {
           method: "POST",
@@ -423,6 +427,22 @@ export default function Home() {
                 ))}
               </div>
             )}
+
+            {/* Optional Date Context Picker */}
+            <div className="text-left space-y-1.5 pt-2">
+              <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block">
+                Flyer Date Context (Optional)
+              </label>
+              <input
+                type="date"
+                value={flyerDateContext}
+                onChange={(e) => setFlyerDateContext(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-350 focus:outline-none focus:border-indigo-500 transition-colors"
+              />
+              <p className="text-[9px] text-slate-505 leading-normal">
+                If the flyer only shows weekdays (e.g. "Saturday") or days (e.g. "Day 1"), select a date here to help the AI map it.
+              </p>
+            </div>
 
             {/* Error / Notice notifications */}
             {errorMessage && (

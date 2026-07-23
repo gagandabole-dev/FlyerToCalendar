@@ -39,6 +39,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({
           imageUrl: body.base64Image || body.imageUrl,
           timezone: body.timezone || "Europe/Berlin",
+          baseDate: body.baseDate || body.flyerDate,
         }),
       });
     }

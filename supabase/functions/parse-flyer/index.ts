@@ -165,6 +165,7 @@ Deno.serve(async (req) => {
     let base64Data = "";
     let mimeType = "image/jpeg";
     let timezone = "Europe/Berlin";
+    let baseDateContext = "";
 
     const contentType = req.headers.get("content-type") || "";
 
@@ -173,9 +174,13 @@ Deno.serve(async (req) => {
       const fileEntry = formData.get("file") || formData.get("image");
       const imageUrlParam = formData.get("imageUrl");
       const tzParam = formData.get("timezone");
+      const baseDateParam = formData.get("baseDate") || formData.get("flyerDate");
 
       if (tzParam && typeof tzParam === "string") {
         timezone = tzParam;
+      }
+      if (baseDateParam && typeof baseDateParam === "string") {
+        baseDateContext = baseDateParam;
       }
 
       if (fileEntry && (fileEntry instanceof File || fileEntry instanceof Blob)) {
@@ -210,6 +215,8 @@ Deno.serve(async (req) => {
       const body = await req.json();
       const imageUrl = body.imageUrl || body.base64Image;
       if (body.timezone) timezone = body.timezone;
+      if (body.baseDate) baseDateContext = body.baseDate;
+      if (body.flyerDate) baseDateContext = body.flyerDate;
 
       if (!imageUrl) {
         return new Response(
@@ -250,6 +257,7 @@ Deno.serve(async (req) => {
     const promptText = `Extract all scheduled event details, workshops, or performances from this flyer image.
 Target Timezone: ${timezone}.
 Current Date Context: ${new Date().toISOString()}.
+${baseDateContext ? `Flyer Date Context: ${baseDateContext}. IMPORTANT: If the flyer does not specify a specific calendar date/year but mentions weekdays (e.g. Saturday, Friday) or days (e.g. Day 1, Day 2), map those relative to this context date: ${baseDateContext}.` : ""}
 
 Return ONLY a valid JSON array of event objects matching this schema:
 [
