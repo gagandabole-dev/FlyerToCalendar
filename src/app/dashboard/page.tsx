@@ -48,6 +48,43 @@ export default function Dashboard() {
     checkUserAndFetchProjects();
   }, [router]);
 
+  // Client-side checkout callback fallback updater
+  useEffect(() => {
+    if (typeof window === "undefined" || !user) return;
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status");
+    const projectId = params.get("project_id");
+
+    if (status === "success" && projectId) {
+      const updateProjectStatus = async () => {
+        try {
+          const { error } = await supabase
+            .from("projects")
+            .update({ status: "paid" })
+            .eq("id", projectId);
+
+          if (!error) {
+            // Silence query parameters
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+            // Re-fetch project list to show updated status immediately
+            const { data } = await supabase
+              .from("projects")
+              .select("*")
+              .eq("user_id", user.id)
+              .order("created_at", { ascending: false });
+            if (data) {
+              setProjects(data as Project[]);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to update status on client callback", e);
+        }
+      };
+      updateProjectStatus();
+    }
+  }, [user]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/login");

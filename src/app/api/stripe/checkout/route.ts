@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import Stripe from "stripe";
 
-// Server-side admin client initialization to safely override status updates
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://egbbychdyuxhaymhjcvo.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "dummy-key-for-build-validation";
-const supabaseAdmin = createClient(supabaseUrl, supabaseAnonKey);
+// Initialize Stripe Client with secret key or build fallback validation key
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "sk_test_51DummyKeyForBuildValidation";
+const stripe = new Stripe(stripeSecretKey, {
+  apiVersion: "2025-01-27" as any,
+});
 
 export async function POST(request: Request) {
   try {
@@ -13,39 +14,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required parameter: projectId" }, { status: 400 });
     }
 
-    const { origin } = new URL(request.url);
-    
-    // Simulate Stripe Checkout page URL redirecting to success callback
-    const simulatedCheckoutUrl = `${origin}/api/stripe/checkout?success_id=${projectId}`;
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://flyertocalendar.vercel.app";
 
-    return NextResponse.json({ url: simulatedCheckoutUrl });
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card', 'sepa_debit'],
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: { name: 'FlyerToCalendar - Single Event Pass' },
+          unit_amount: 2900,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${appUrl}/dashboard?status=success&project_id=${projectId}`,
+      cancel_url: `${appUrl}/dashboard`,
+      metadata: {
+        projectId,
+      }
+    });
+
+    return NextResponse.json({ url: session.url });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Stripe checkout session initiation failed." }, { status: 500 });
   }
-}
-
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const successId = searchParams.get("success_id");
-
-  if (successId) {
-    try {
-      // Simulate Stripe Webhook callback by updating database entry to 'paid' status directly
-      const { error } = await supabaseAdmin
-        .from("projects")
-        .update({ status: "paid" })
-        .eq("id", successId);
-
-      if (error) {
-        console.error("Failed to update project status in simulator", error);
-      }
-      
-      // Redirect back to project workspace
-      return NextResponse.redirect(`${origin}/dashboard/projects/${successId}`);
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  return NextResponse.redirect(`${origin}/dashboard`);
 }
