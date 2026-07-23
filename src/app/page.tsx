@@ -394,7 +394,7 @@ export default function Home() {
                     </div>
                     <button
                       onClick={() => removeFile(idx)}
-                      className="text-slate-550 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors text-sm"
+                      className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors text-sm"
                     >
                       ✕
                     </button>
@@ -634,27 +634,45 @@ export default function Home() {
 
               {/* Dynamic Branded SVG Card with Editable Label & Actual Scannable QR Code */}
               <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 shadow-inner flex justify-center">
-                <svg id="qr-flyer-svg" width="260" height="350" viewBox="0 0 260 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg id="qr-flyer-svg" width="260" height="360" viewBox="0 0 260 360" fill="none" xmlns="http://www.w3.org/2000/svg">
                   {/* Background rect */}
-                  <rect width="260" height="350" rx="16" fill="#0f172a"/>
-                  <rect x="1" y="1" width="258" height="348" rx="15" stroke="#1e293b" strokeWidth="2"/>
+                  <rect width="260" height="360" rx="16" fill="#0f172a"/>
+                  <rect x="1" y="1" width="258" height="358" rx="15" stroke="#1e293b" strokeWidth="2"/>
                   
-                  {/* Styled Header Text */}
-                  <text x="130" y="45" fill="#ffffff" fontFamily="sans-serif" fontSize="13" fontWeight="bold" textAnchor="middle">
-                    {customLabel || "Event Schedule"}
-                  </text>
-                  <text x="130" y="65" fill="#94a3b8" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
+                  {/* Styled Header Text using foreignObject for text wrapping & auto-sizing */}
+                  <foreignObject x="15" y="22" width="230" height="48">
+                    <div xmlns="http://www.w3.org/1999/xhtml" style={{
+                      color: "#818cf8",
+                      fontFamily: "sans-serif",
+                      fontSize: "14px",
+                      fontWeight: "bold",
+                      textAlign: "center",
+                      lineHeight: "1.25",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                    }}>
+                      {customLabel || "Event Schedule"}
+                    </div>
+                  </foreignObject>
+
+                  {/* Subtitle */}
+                  <text x="130" y="86" fill="#94a3b8" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
                     Scan to add the schedule to your calendar
                   </text>
                   
+                  {/* White background card for QR Code to pop and scan successfully */}
+                  <rect x="55" y="106" width="150" height="150" rx="8" fill="#ffffff" />
+
                   {/* Real Scannable QR Code Image */}
-                  <image href={qrCodeImageUrl} x="45" y="85" width="170" height="170" />
+                  <image href={qrCodeImageUrl} x="60" y="111" width="140" height="140" />
                   
                   {/* Footer branding */}
-                  <text x="130" y="295" fill="#818cf8" fontFamily="sans-serif" fontSize="11" fontWeight="bold" textAnchor="middle">
+                  <text x="130" y="302" fill="#818cf8" fontFamily="sans-serif" fontSize="11" fontWeight="bold" textAnchor="middle">
                     ⚡ FlyerToCalendar
                   </text>
-                  <text x="130" y="315" fill="#64748b" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
+                  <text x="130" y="322" fill="#64748b" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
                     flyertocalendar.vercel.app
                   </text>
                 </svg>
