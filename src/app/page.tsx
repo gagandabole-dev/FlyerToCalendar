@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 
 interface CalendarEvent {
   title: string;
@@ -350,6 +351,26 @@ export default function Home() {
             </button>
           </div>
         </div>
+
+        {/* Organizer Portal Entry Banner */}
+        {userMode === "organizer" && (
+          <div className="p-4 bg-slate-900/40 border border-slate-850 rounded-2xl max-w-xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-left backdrop-blur-md">
+            <div className="space-y-0.5">
+              <p className="text-sm font-extrabold text-white flex items-center gap-1.5">
+                <span>🔑</span> Organizer Portal
+              </p>
+              <p className="text-xs text-slate-400">
+                Log in or sign up to save projects to the cloud, edit schedules, and activate passes.
+              </p>
+            </div>
+            <Link
+              href="/login"
+              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg text-white transition shadow-md shadow-indigo-600/20 shrink-0"
+            >
+              Go to Dashboard / Sign In
+            </Link>
+          </div>
+        )}
 
         {/* Primary Interactive Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
