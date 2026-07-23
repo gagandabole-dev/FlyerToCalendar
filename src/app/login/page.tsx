@@ -11,6 +11,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
   
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function Login() {
           setMessage({
             text: data.session 
               ? "Account created successfully! Redirecting..." 
-              : "Account created! If email confirmation is enabled, check your inbox. Otherwise, you can now Sign In.",
+              : "Account created! If email confirmation is enabled, check your inbox. Otherwise, you can now Sign In with your password.",
             type: "success",
           });
           
@@ -69,6 +70,35 @@ export default function Login() {
       setMessage({ text: err.message || "Authentication failed.", type: "error" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setMessage({ text: "Please enter your email address first in the input field.", type: "error" });
+      return;
+    }
+
+    setResetLoading(true);
+    setMessage(null);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        setMessage({ text: error.message, type: "error" });
+      } else {
+        setMessage({
+          text: "Password reset link has been sent to your email!",
+          type: "success",
+        });
+      }
+    } catch (err: any) {
+      setMessage({ text: err.message || "Failed to send reset link.", type: "error" });
+    } finally {
+      setResetLoading(false);
     }
   };
 
@@ -120,9 +150,21 @@ export default function Login() {
             </div>
 
             <div>
-              <label htmlFor="password" className="text-[10px] font-bold tracking-wider text-slate-500 uppercase block mb-1.5">
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label htmlFor="password" className="text-[10px] font-bold tracking-wider text-slate-500 uppercase block">
+                  Password
+                </label>
+                {passwordMode === "signin" && (
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={resetLoading}
+                    className="text-[10px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors focus:outline-none"
+                  >
+                    {resetLoading ? "Sending link..." : "Forgot Password?"}
+                  </button>
+                )}
+              </div>
               <input
                 id="password"
                 type="password"
