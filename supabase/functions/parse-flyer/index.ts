@@ -4,6 +4,143 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function extractJsonArray(text: string): string {
+  let cleanText = text.trim();
+  // Remove markdown backticks if present
+  if (cleanText.startsWith("```")) {
+    const lines = cleanText.split("\n");
+    if (lines[0].startsWith("```")) {
+      lines.shift();
+    }
+    if (lines[lines.length - 1].startsWith("```")) {
+      lines.pop();
+    }
+    cleanText = lines.join("\n").trim();
+  }
+  
+  // Find first '[' and last ']'
+  const firstBracket = cleanText.indexOf("[");
+  const lastBracket = cleanText.lastIndexOf("]");
+  if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+    return cleanText.substring(firstBracket, lastBracket + 1);
+  }
+  
+  // Try matching braces '{' and '}'
+  const firstBrace = cleanText.indexOf("{");
+  const lastBrace = cleanText.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    return cleanText.substring(firstBrace, lastBrace + 1);
+  }
+  
+  return cleanText;
+}
+
+function repairTruncatedJson(jsonStr: string): string {
+  try {
+    JSON.parse(jsonStr);
+    return jsonStr;
+  } catch (_) {
+    // Continue to repair
+  }
+
+  let repaired = jsonStr.trim();
+
+  // Strip trailing commas
+  if (repaired.endsWith(",")) {
+    repaired = repaired.slice(0, -1).trim();
+  }
+
+  let openBrackets = 0;
+  let openBraces = 0;
+  let inString = false;
+  let escape = false;
+
+  for (let i = 0; i < repaired.length; i++) {
+    const char = repaired[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (char === "\\") {
+      escape = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (!inString) {
+      if (char === "[") openBrackets++;
+      else if (char === "]") openBrackets--;
+      else if (char === "{") openBraces++;
+      else if (char === "}") openBraces--;
+    }
+  }
+
+  if (inString) {
+    repaired += '"';
+  }
+
+  let closing = "";
+  let tempBraces = openBraces;
+  let tempBrackets = openBrackets;
+  while (tempBraces > 0) {
+    closing += "}";
+    tempBraces--;
+  }
+  while (tempBrackets > 0) {
+    closing += "]";
+    tempBrackets--;
+  }
+
+  try {
+    const testStr = repaired + closing;
+    JSON.parse(testStr);
+    return testStr;
+  } catch (_) {
+    // If simple closing fails, cut back to the last complete object closing brace
+    const lastBrace = repaired.lastIndexOf("}");
+    if (lastBrace !== -1) {
+      let cutStr = repaired.substring(0, lastBrace + 1).trim();
+      if (cutStr.endsWith(",")) {
+        cutStr = cutStr.slice(0, -1).trim();
+      }
+
+      let brackets = 0;
+      let braces = 0;
+      let strState = false;
+      let escState = false;
+
+      for (let i = 0; i < cutStr.length; i++) {
+        const char = cutStr[i];
+        if (escState) { escState = false; continue; }
+        if (char === "\\") { escState = true; continue; }
+        if (char === '"') { strState = !strState; continue; }
+        if (!strState) {
+          if (char === "[") brackets++;
+          else if (char === "]") brackets--;
+          else if (char === "{") braces++;
+          else if (char === "}") braces--;
+        }
+      }
+
+      let closeExtra = "";
+      while (braces > 0) { closeExtra += "}"; braces--; }
+      while (brackets > 0) { closeExtra += "]"; brackets--; }
+
+      try {
+        const parsedCut = cutStr + closeExtra;
+        JSON.parse(parsedCut);
+        return parsedCut;
+      } catch (_) {
+        // Fallback
+      }
+    }
+  }
+
+  return jsonStr;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -136,12 +273,12 @@ Return ONLY a valid JSON array of event objects matching this schema:
         }
       ],
       generationConfig: {
-        response_mime_type: "application/json"
+        response_mime_type: "application/json",
+        maxOutputTokens: 8192
       }
     };
 
-    // Valid active Gemini API models (since year is 2026, 2.0/1.5 models are deprecated)
-    const candidateModels = ["gemini-3.5-flash", "gemini-3.6-flash", "gemini-2.5-flash", "gemini-3.5-flash-lite"];
+    const candidateModels = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash-8b"];
     let geminiRes: Response | null = null;
     let lastErrBody = "";
     let rateLimitStatus = false;
@@ -186,9 +323,19 @@ Return ONLY a valid JSON array of event objects matching this schema:
       );
     }
 
-    const geminiJson = await geminiRes.ok ? await geminiRes.json() : {};
+    const geminiJson = await geminiRes.json();
     const rawText = geminiJson.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
-    const events = JSON.parse(rawText);
+    
+    // Clean and repair potential truncation
+    const cleanJsonString = repairTruncatedJson(extractJsonArray(rawText));
+    let events = JSON.parse(cleanJsonString);
+
+    if (events && !Array.isArray(events) && Array.isArray(events.events)) {
+      events = events.events;
+    }
+    if (!Array.isArray(events)) {
+      events = [events];
+    }
 
     return new Response(JSON.stringify(events), {
       status: 200,
