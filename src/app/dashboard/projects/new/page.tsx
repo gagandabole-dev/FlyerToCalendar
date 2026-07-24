@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
+import { normalizeDateStr } from "@/lib/dateUtils";
 
 interface CalendarEvent {
   title: string;
@@ -187,8 +188,9 @@ export default function NewProject() {
       // 2. Insert schedule items
       const scheduleInserts = events.map((event) => {
         // Safe parsing of date & time boundaries
-        const startISO = new Date(`${event.date}T${event.startTime}:00`).toISOString();
-        const endISO = new Date(`${event.date}T${event.endTime}:00`).toISOString();
+        const normDate = normalizeDateStr(event.date);
+        const startISO = new Date(`${normDate}T${event.startTime}:00`).toISOString();
+        const endISO = new Date(`${normDate}T${event.endTime}:00`).toISOString();
 
         return {
           project_id: project.id,

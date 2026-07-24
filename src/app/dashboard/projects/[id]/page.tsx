@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { canExportProject } from "@/lib/permissions";
 import ExportModal from "@/components/ExportModal";
+import { normalizeDateStr } from "@/lib/dateUtils";
 
 interface ScheduleItem {
   id?: string;
@@ -164,8 +165,9 @@ export default function ProjectEditor({ params }: { params: Promise<{ id: string
 
       // 2. Insert updated schedules list
       const scheduleInserts = schedules.map((item: any) => {
-        const startISO = new Date(`${item.date}T${item.startTime}:00`).toISOString();
-        const endISO = new Date(`${item.date}T${item.endTime}:00`).toISOString();
+        const normDate = normalizeDateStr(item.date);
+        const startISO = new Date(`${normDate}T${item.startTime}:00`).toISOString();
+        const endISO = new Date(`${normDate}T${item.endTime}:00`).toISOString();
 
         return {
           project_id: project.id,

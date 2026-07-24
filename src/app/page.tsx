@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import ExportModal from "@/components/ExportModal";
+import { normalizeDateStr } from "@/lib/dateUtils";
 
 interface CalendarEvent {
   title: string;
@@ -283,8 +284,27 @@ export default function Home() {
       chunk.forEach((item: any) => {
         const sTimeStr = item.start_time || item.startTime;
         const eTimeStr = item.end_time || item.endTime;
-        const sDate = sTimeStr ? new Date(sTimeStr) : new Date(`${item.date}T${item.startTime}`);
-        const eDate = eTimeStr ? new Date(eTimeStr) : new Date(`${item.date}T${item.endTime}`);
+        
+        let sDate: Date;
+        let eDate: Date;
+        
+        if (sTimeStr && sTimeStr.includes("T")) {
+          sDate = new Date(sTimeStr);
+        } else {
+          const normDate = normalizeDateStr(item.date);
+          sDate = new Date(`${normDate}T${item.startTime || "12:00"}`);
+        }
+
+        if (eTimeStr && eTimeStr.includes("T")) {
+          eDate = new Date(eTimeStr);
+        } else {
+          const normDate = normalizeDateStr(item.date);
+          eDate = new Date(`${normDate}T${item.endTime || "13:00"}`);
+        }
+
+        // Fallback for invalid dates
+        if (isNaN(sDate.getTime())) sDate = new Date();
+        if (isNaN(eDate.getTime())) eDate = new Date(sDate.getTime() + 3600000);
 
         const pad = (num: number) => String(num).padStart(2, "0");
         const cleanDate = `${sDate.getFullYear()}${pad(sDate.getMonth() + 1)}${pad(sDate.getDate())}`;

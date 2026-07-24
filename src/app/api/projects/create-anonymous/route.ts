@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseClient";
+import { normalizeDateStr } from "@/lib/dateUtils";
 
 export async function POST(request: Request) {
   try {
@@ -47,15 +48,15 @@ export async function POST(request: Request) {
     // 3. Insert schedules
     const scheduleInserts = events.map((item: any) => {
       const today = new Date().toISOString().split("T")[0];
-      const dateStr = item.date || today;
+      const normDate = normalizeDateStr(item.date || today);
       const startStr = item.startTime || "12:00";
       const endStr = item.endTime || "13:00";
 
       return {
         project_id: project.id,
         title: item.title || "Untitled Event",
-        start_time: new Date(`${dateStr}T${startStr}`).toISOString(),
-        end_time: new Date(`${dateStr}T${endStr}`).toISOString(),
+        start_time: new Date(`${normDate}T${startStr}`).toISOString(),
+        end_time: new Date(`${normDate}T${endStr}`).toISOString(),
         room: item.room || item.location || "Main Stage",
         artist: item.artist || "",
       };
