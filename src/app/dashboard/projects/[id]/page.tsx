@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { canExportProject } from "@/lib/permissions";
+import ExportModal from "@/components/ExportModal";
 
 interface ScheduleItem {
   id?: string;
@@ -37,6 +38,7 @@ export default function ProjectEditor({ params }: { params: Promise<{ id: string
   const [showShareModal, setShowShareModal] = useState(false);
   const [customLabel, setCustomLabel] = useState("");
   const [copied, setCopied] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   const router = useRouter();
 
@@ -299,7 +301,7 @@ export default function ProjectEditor({ params }: { params: Promise<{ id: string
             {exportAllowed ? (
               <>
                 <button
-                  onClick={triggerCombinedIcsDownload}
+                  onClick={() => setShowExportModal(true)}
                   className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 text-xs font-bold rounded-lg transition"
                 >
                   📥 Export Combined .ICS
@@ -571,6 +573,18 @@ export default function ProjectEditor({ params }: { params: Promise<{ id: string
             </div>
           </div>
         </div>
+      )}
+
+      {project && (
+        <ExportModal
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          events={schedules}
+          projectId={project.id}
+          status={project.status}
+          userEmail={user?.email}
+          eventName={project.event_name}
+        />
       )}
     </main>
   );

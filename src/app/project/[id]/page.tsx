@@ -3,6 +3,7 @@
 import { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
+import ExportModal from "@/components/ExportModal";
 
 interface ScheduleItem {
   id: string;
@@ -26,6 +27,7 @@ export default function ProjectPublicViewer({ params }: { params: Promise<{ id: 
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   useEffect(() => {
     const fetchPublicSchedule = async () => {
@@ -56,33 +58,12 @@ export default function ProjectPublicViewer({ params }: { params: Promise<{ id: 
       if (sData && !sError) {
         setSchedules(sData as ScheduleItem[]);
         
-        // 3. Compile and trigger automatic ICS download
+        // Open export options on load if events exist
         if (sData.length > 0) {
-          let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//FlyerToCalendar//NONSGML v1.0//EN\n";
-          sData.forEach((item: any) => {
-            const sDate = new Date(item.start_time);
-            const eDate = new Date(item.end_time);
-
-            // Format date to local standard YYYYMMDD
-            const pad = (num: number) => String(num).padStart(2, "0");
-            const cleanDate = `${sDate.getFullYear()}${pad(sDate.getMonth() + 1)}${pad(sDate.getDate())}`;
-            const startClean = `${pad(sDate.getHours())}${pad(sDate.getMinutes())}00`;
-            const endClean = `${pad(eDate.getHours())}${pad(eDate.getMinutes())}00`;
-
-            icsContent += `BEGIN:VEVENT\nSUMMARY:${item.title} - ${item.artist || ""}\nDTSTART:${cleanDate}T${startClean}\nDTEND:${cleanDate}T${endClean}\nLOCATION:${item.room || ""}\nEND:VEVENT\n`;
-          });
-          icsContent += "END:VCALENDAR";
-
-          const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.download = `${proj.event_name.toLowerCase().replace(/\s+/g, "-")}-schedule.ics`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          setShowExportModal(true);
         }
 
-        // 4. Log page view analytics event
+        // 3. Log page view analytics event
         supabase.from("analytics_events").insert({
           event_type: "page_view",
           project_id: id,
@@ -93,30 +74,6 @@ export default function ProjectPublicViewer({ params }: { params: Promise<{ id: 
 
     fetchPublicSchedule();
   }, [id]);
-
-  const handleManualDownload = () => {
-    if (schedules.length === 0 || !project) return;
-    
-    let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//FlyerToCalendar//NONSGML v1.0//EN\n";
-    schedules.forEach((item: any) => {
-      const sDate = new Date(item.start_time);
-      const eDate = new Date(item.end_time);
-
-      const pad = (num: number) => String(num).padStart(2, "0");
-      const cleanDate = `${sDate.getFullYear()}${pad(sDate.getMonth() + 1)}${pad(sDate.getDate())}`;
-      const startClean = `${pad(sDate.getHours())}${pad(sDate.getMinutes())}00`;
-      const endClean = `${pad(eDate.getHours())}${pad(eDate.getMinutes())}00`;
-
-      icsContent += `BEGIN:VEVENT\nSUMMARY:${item.title} - ${item.artist || ""}\nDTSTART:${cleanDate}T${startClean}\nDTEND:${cleanDate}T${endClean}\nLOCATION:${item.room || ""}\nEND:VEVENT\n`;
-    });
-    icsContent += "END:VCALENDAR";
-
-    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${project.event_name.toLowerCase().replace(/\s+/g, "-")}-schedule.ics`;
-    link.click();
-  };
 
   if (loading) {
     return (
@@ -152,7 +109,7 @@ export default function ProjectPublicViewer({ params }: { params: Promise<{ id: 
             {project.event_name}
           </h1>
           <p className="text-slate-400 text-xs max-w-xs mx-auto leading-relaxed">
-            Your calendar file (.ics) has been downloaded automatically. Tap it to import all event items instantly.
+            Your interactive calendar workspace is ready. Click below to add the schedule to your calendar.
           </p>
         </div>
 
@@ -164,10 +121,10 @@ export default function ProjectPublicViewer({ params }: { params: Promise<{ id: 
 
           <div className="space-y-3">
             <button
-              onClick={handleManualDownload}
+              onClick={() => setShowExportModal(true)}
               className="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-500 transition shadow-lg shadow-indigo-600/25 text-sm"
             >
-              Download Calendar File (.ICS)
+              Export Calendar Events
             </button>
             <Link
               href="/"
@@ -179,6 +136,15 @@ export default function ProjectPublicViewer({ params }: { params: Promise<{ id: 
         </div>
 
       </div>
+
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        events={schedules}
+        projectId={project.id}
+        status={project.status}
+        eventName={project.event_name}
+      />
     </main>
   );
 }

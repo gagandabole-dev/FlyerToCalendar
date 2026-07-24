@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import ExportModal from "@/components/ExportModal";
 
 interface CalendarEvent {
   title: string;
@@ -24,6 +25,7 @@ export default function Home() {
   const [showDatePickerModal, setShowDatePickerModal] = useState(false);
   const [tempDate, setTempDate] = useState("");
   const [tempExtractedEvents, setTempExtractedEvents] = useState<CalendarEvent[]>([]);
+  const [showExportModal, setShowExportModal] = useState(false);
   
   // Organizer waitlist
   const [email, setEmail] = useState("");
@@ -498,19 +500,19 @@ export default function Home() {
                 </h2>
                 {events.length > 0 && userMode === "user" && (
                   <button
-                    onClick={() => triggerIcsDownload("user")}
+                    onClick={() => setShowExportModal(true)}
                     className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg text-white transition shadow-md flex items-center gap-1.5"
                   >
                     📅 Export to Calendar (.ics)
                   </button>
                 )}
               </div>
-
+ 
               {/* Organizer Actions moved directly below header */}
               {events.length > 0 && userMode === "organizer" && (
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
-                    onClick={() => triggerIcsDownload("organizer")}
+                    onClick={() => setShowExportModal(true)}
                     className="flex-1 py-2.5 px-4 rounded-xl font-bold bg-slate-850 hover:bg-slate-800 text-slate-200 hover:text-white transition border border-slate-750 flex items-center justify-center gap-2 text-xs shadow-md"
                   >
                     <span>💾</span> Download Combined .ICS
@@ -627,7 +629,7 @@ export default function Home() {
                 {userMode === "user" && (
                   <div className="pt-4 border-t border-slate-850 flex flex-col sm:flex-row gap-3">
                     <button
-                      onClick={() => triggerIcsDownload("user")}
+                      onClick={() => setShowExportModal(true)}
                       className="flex-1 py-3 px-5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center justify-center gap-2 text-sm shadow-md"
                     >
                       <span>💾</span> Export Calendar (.ICS)
@@ -784,6 +786,13 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      <ExportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        events={events}
+        eventName="flyertocalendar"
+      />
     </main>
   );
 }
