@@ -40,6 +40,13 @@ export default function ProjectEditor({ params }: { params: Promise<{ id: string
   const [customLabel, setCustomLabel] = useState("");
   const [copied, setCopied] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [origin, setOrigin] = useState("https://flyertocalendar.vercel.app");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setOrigin(window.location.origin);
+    }
+  }, []);
 
   const router = useRouter();
 
@@ -287,7 +294,7 @@ export default function ProjectEditor({ params }: { params: Promise<{ id: string
   const exportAllowed = canExportProject(user?.email, project?.status);
 
   // Generate dynamic Vercel project viewer URL
-  const sharedUrl = `https://flyertocalendar.vercel.app/project/${project?.id}`;
+  const sharedUrl = `${origin}/project/${project?.id}`;
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sharedUrl)}&color=0f172a&bgcolor=ffffff`;
 
   return (
@@ -529,8 +536,8 @@ export default function ProjectEditor({ params }: { params: Promise<{ id: string
                   {/* White background card for QR Code to pop and scan successfully */}
                   <rect x="55" y="106" width="150" height="150" rx="8" fill="#ffffff" />
 
-                  {/* Real Scannable QR Code Image */}
-                  <image href={qrCodeImageUrl} x="60" y="111" width="140" height="140" />
+                  {/* Real Scannable QR Code Image with enhanced quiet zone for Android compatibility */}
+                  <image href={qrCodeImageUrl} x="67" y="118" width="126" height="126" />
                   
                   {/* Footer branding */}
                   <text x="130" y="302" fill="#818cf8" fontFamily="sans-serif" fontSize="11" fontWeight="bold" textAnchor="middle">

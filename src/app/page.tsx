@@ -385,11 +385,12 @@ export default function Home() {
 
   // Generate dynamic compressed Base64 sharing link containing the events state
   const getSharedUrl = () => {
-    if (events.length === 0) return "https://flyertocalendar.vercel.app/";
+    const baseOrigin = typeof window !== "undefined" ? window.location.origin : "https://flyertocalendar.vercel.app";
+    if (events.length === 0) return `${baseOrigin}/`;
     const encoded = encodeEvents(events);
     return encoded 
-      ? `https://flyertocalendar.vercel.app/?import=${encoded}`
-      : "https://flyertocalendar.vercel.app/";
+      ? `${baseOrigin}/?import=${encoded}`
+      : `${baseOrigin}/`;
   };
 
   const sharedUrl = getSharedUrl();
