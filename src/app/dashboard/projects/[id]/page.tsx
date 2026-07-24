@@ -64,8 +64,25 @@ export default function ProjectEditor({ params }: { params: Promise<{ id: string
         setLoading(false);
         return;
       }
-      setProject(pData as Project);
-      setCustomLabel(`${pData.event_name} Schedule`);
+      const proj = pData as Project;
+      
+      // Self-healing check: automatically elevate draft status to bypass if owner is gagan.dabole@gmail.com
+      if (proj.status === "draft" && session.user?.email?.toLowerCase() === "gagan.dabole@gmail.com") {
+        const { data: updatedProj } = await supabase
+          .from("projects")
+          .update({ status: "bypass" })
+          .eq("id", id)
+          .select()
+          .single();
+        if (updatedProj) {
+          setProject(updatedProj as Project);
+        } else {
+          setProject(proj);
+        }
+      } else {
+        setProject(proj);
+      }
+      setCustomLabel(`${proj.event_name} Schedule`);
 
       // Fetch schedules
       const { data: sData, error: sError } = await supabase
