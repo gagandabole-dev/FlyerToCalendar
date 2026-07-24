@@ -901,9 +901,9 @@ END:VEVENT
               <p className="text-[11px] font-bold tracking-wider text-slate-500 uppercase">Pro features unlocked on sign up:</p>
               <ul className="text-xs text-slate-300 space-y-2 list-inside list-disc">
                 <li>Upload up to 10 schedule images concurrently</li>
-                <li>Download scannable high-contrast SVG QR flyers</li>
-                <li>Edit sessions, room schedules, and artist rosters anytime</li>
-                <li>Create permanent viewer links (no huge query parameter URLs)</li>
+                <li>Download scannable high-contrast PNG/JPEG QR flyers</li>
+                <li>Edit sessions, rooms, artists and reshare QR cards</li>
+                <li>Create and manage multiple event projects concurrently</li>
               </ul>
             </div>
 

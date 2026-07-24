@@ -340,33 +340,48 @@ END:VEVENT
     drawRoundRect(20, 20, 220, 52, 10, "#1e293b");
 
     // 3. Draw Header text
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.textBaseline = "alphabetic";
     
-    // Title
-    ctx.fillStyle = "#ffffff";
+    // Title (Using branding color #818cf8 as shown in the card mockups)
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#818cf8";
     ctx.font = "bold 13px sans-serif";
     const titleText = customLabel || "Event Schedule";
-    ctx.fillText(titleText, 130, 40);
+    ctx.fillText(titleText, 130, 44);
 
     // Subtitle inside header
     ctx.fillStyle = "#94a3b8";
     ctx.font = "9px sans-serif";
-    ctx.fillText("Event Schedule", 130, 56);
+    ctx.fillText("Event Schedule", 130, 60);
 
     // 4. Draw subtitle under header
     ctx.fillStyle = "#64748b";
     ctx.font = "8px sans-serif";
-    ctx.fillText("Scan to add the schedule to your calendar", 130, 88);
+    ctx.fillText("Scan to add the schedule to your calendar", 130, 86);
 
     // 5. Draw White Background Card for QR
     drawRoundRect(55, 106, 150, 150, 8, "#ffffff");
 
-    // 6. Draw Footer branding
-    ctx.fillStyle = "#818cf8";
+    // 6. Draw Footer branding (aligned and split by colors)
     ctx.font = "bold 11px sans-serif";
-    ctx.fillText("⚡ FlyerToCalendar", 130, 302);
+    const boltWidth = ctx.measureText("⚡").width;
+    const gapWidth = ctx.measureText(" ").width;
+    const brandWidth = ctx.measureText("FlyerToCalendar").width;
+    const totalWidth = boltWidth + gapWidth + brandWidth;
+    
+    const startX = 130 - totalWidth / 2;
+    
+    // Draw bolt (yellow #fbbf24)
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#fbbf24";
+    ctx.fillText("⚡", startX, 302);
+    
+    // Draw brand name (indigo #818cf8)
+    ctx.fillStyle = "#818cf8";
+    ctx.fillText("FlyerToCalendar", startX + boltWidth + gapWidth, 302);
 
+    // Draw domain subtitle
+    ctx.textAlign = "center";
     ctx.fillStyle = "#475569";
     ctx.font = "8px sans-serif";
     ctx.fillText("flyertocalendar.vercel.app", 130, 322);
