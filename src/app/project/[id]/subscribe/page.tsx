@@ -34,10 +34,17 @@ export default function SubscribeLandingPage({ params }: { params: Promise<{ id:
     );
   }
 
+  const [origin, setOrigin] = useState("https://flyertocalendar.vercel.app");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setOrigin(window.location.origin);
+    }
+  }, []);
+
   const eventName = project?.event_name || "Festival Schedule";
-  const host = "flyertocalendar.vercel.app";
-  const webcalUrl = `webcal://${host}/api/feed/${id}`;
-  const httpUrl = `https://${host}/api/feed/${id}`;
+  const webcalUrl = origin.replace(/^https?:/, "webcal:") + `/api/feed/${id}`;
+  const httpUrl = `${origin}/api/feed/${id}`;
   const googleCalUrl = `https://www.google.com/calendar/render?cid=${encodeURIComponent(httpUrl)}`;
 
   return (

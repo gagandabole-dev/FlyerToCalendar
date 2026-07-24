@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface CalendarEvent {
   id?: string;
@@ -35,14 +35,19 @@ export default function ExportModal({
   eventName,
 }: ExportModalProps) {
   const [copied, setCopied] = useState(false);
+  const [origin, setOrigin] = useState("https://flyertocalendar.vercel.app");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setOrigin(window.location.origin);
+    }
+  }, []);
 
   if (!isOpen) return null;
 
-  const host = "flyertocalendar.vercel.app";
-  const webcalUrl = `webcal://${host}/api/feed/${projectId || "dummy"}`;
-  const webcalsUrl = `webcals://${host}/api/feed/${projectId || "dummy"}`;
-  const httpUrl = `https://${host}/api/feed/${projectId || "dummy"}`;
-  const subscribePageUrl = `https://${host}/project/${projectId || "dummy"}/subscribe`;
+  const webcalUrl = origin.replace(/^https?:/, "webcal:") + `/api/feed/${projectId || "dummy"}`;
+  const httpUrl = `${origin}/api/feed/${projectId || "dummy"}`;
+  const subscribePageUrl = `${origin}/project/${projectId || "dummy"}/subscribe`;
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
     subscribePageUrl
   )}&color=0f172a&bgcolor=ffffff`;
@@ -92,7 +97,7 @@ export default function ExportModal({
               href={webcalUrl}
               className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2"
             >
-              🔗 1-Click Add to Phone Calendar
+              🔗 1-Click Dynamic Sync
             </a>
 
             {/* Google Calendar Subscription Link for Android and Chrome Web Users */}

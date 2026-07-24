@@ -12,6 +12,27 @@ export async function OPTIONS() {
 
 export async function POST(request: Request) {
   try {
+    if (process.env.NEXT_PUBLIC_MOCK_OFFLINE === "true") {
+      return NextResponse.json([
+        {
+          title: "Opening Keynote",
+          artist: "Dr. Gemini",
+          date: "2026-07-24",
+          startTime: "10:00",
+          endTime: "11:00",
+          room: "Hall A"
+        },
+        {
+          title: "Deep Dive into Agentic AI",
+          artist: "Antigravity Team",
+          date: "2026-07-24",
+          startTime: "11:30",
+          endTime: "13:00",
+          room: "Hall B"
+        }
+      ], { headers: corsHeaders });
+    }
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://egbbychdyuxhaymhjcvo.supabase.co";
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
     const functionEndpoint = `${supabaseUrl}/functions/v1/parse-flyer`;

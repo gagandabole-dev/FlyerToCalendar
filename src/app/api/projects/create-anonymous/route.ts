@@ -4,6 +4,10 @@ import { normalizeDateStr } from "@/lib/dateUtils";
 
 export async function POST(request: Request) {
   try {
+    if (process.env.NEXT_PUBLIC_MOCK_OFFLINE === "true") {
+      return NextResponse.json({ projectId: "mock-project-123" });
+    }
+
     const { eventName, events } = await request.json();
 
     if (!eventName || !events || !Array.isArray(events)) {
