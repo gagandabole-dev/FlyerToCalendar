@@ -661,7 +661,7 @@ END:VEVENT
                     disabled={anonCreating || !anonProjectId}
                     className="flex-1 py-2.5 px-4 rounded-xl font-bold bg-slate-850 hover:bg-slate-800 disabled:opacity-50 text-slate-200 hover:text-white transition border border-slate-750 flex items-center justify-center gap-2 text-xs shadow-md"
                   >
-                    {anonCreating ? "🔄 Syncing Feed..." : "💾 Download Combined .ICS"}
+                    {anonCreating ? "🔄 Syncing Feed..." : "💾 Download .ICS"}
                   </button>
                   <button
                     onClick={() => setShowShareModal(true)}
@@ -835,6 +835,68 @@ END:VEVENT
               <p className="text-xs text-slate-455 leading-relaxed">
                 To download your branded scannable QR card and upload up to 10 flyers concurrently, create a free Organizer account!
               </p>
+            </div>
+
+            {/* Beautiful Dummy QR Card Preview */}
+            <div className="flex justify-center py-1 relative group">
+              <div className="relative filter blur-[0.5px] opacity-75 border border-slate-800/80 rounded-2xl overflow-hidden shadow-xl scale-90 bg-slate-950">
+                <svg width="200" height="276" viewBox="0 0 260 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Background rect */}
+                  <rect width="260" height="360" rx="16" fill="#0f172a"/>
+
+                  {/* Header card branding */}
+                  <rect x="20" y="20" width="220" height="52" rx="10" fill="#1e293b" />
+                  <text x="130" y="44" fill="#ffffff" fontFamily="sans-serif" fontSize="13" fontWeight="bold" textAnchor="middle">
+                    Sunday Party!
+                  </text>
+                  <text x="130" y="60" fill="#94a3b8" fontFamily="sans-serif" fontSize="9" textAnchor="middle">
+                    Event Schedule
+                  </text>
+
+                  {/* Subtitle */}
+                  <text x="130" y="90" fill="#64748b" fontFamily="sans-serif" fontSize="8" textAnchor="middle">
+                    Scan to add the schedule to your calendar
+                  </text>
+                  
+                  {/* White background card for QR Code */}
+                  <rect x="55" y="106" width="150" height="150" rx="8" fill="#ffffff" />
+
+                  {/* Mock QR Code Image Finder Patterns */}
+                  <rect x="67" y="118" width="126" height="126" fill="#e2e8f0" rx="4" />
+                  <rect x="75" y="126" width="30" height="30" fill="#0f172a" />
+                  <rect x="80" y="131" width="20" height="20" fill="#ffffff" />
+                  <rect x="85" y="136" width="10" height="10" fill="#0f172a" />
+
+                  <rect x="153" y="126" width="30" height="30" fill="#0f172a" />
+                  <rect x="158" y="131" width="20" height="20" fill="#ffffff" />
+                  <rect x="163" y="136" width="10" height="10" fill="#0f172a" />
+
+                  <rect x="75" y="204" width="30" height="30" fill="#0f172a" />
+                  <rect x="80" y="209" width="20" height="20" fill="#ffffff" />
+                  <rect x="85" y="214" width="10" height="10" fill="#0f172a" />
+
+                  {/* Mock QR modules */}
+                  <rect x="120" y="130" width="10" height="20" fill="#0f172a" />
+                  <rect x="140" y="145" width="10" height="10" fill="#0f172a" />
+                  <rect x="110" y="170" width="30" height="10" fill="#0f172a" />
+                  <rect x="150" y="180" width="20" height="30" fill="#0f172a" />
+                  <rect x="125" y="200" width="20" height="10" fill="#0f172a" />
+                  <rect x="160" y="215" width="15" height="15" fill="#0f172a" />
+                  
+                  {/* Footer branding */}
+                  <text x="130" y="302" fill="#818cf8" fontFamily="sans-serif" fontSize="11" fontWeight="bold" textAnchor="middle">
+                    ⚡ FlyerToCalendar
+                  </text>
+                  <text x="130" y="322" fill="#475569" fontFamily="sans-serif" fontSize="8" textAnchor="middle">
+                    flyertocalendar.vercel.app
+                  </text>
+                </svg>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="bg-indigo-600/90 text-white font-bold text-[9px] px-2.5 py-1 rounded-full border border-indigo-500 shadow-md">
+                  ✨ PRO PREVIEW
+                </span>
+              </div>
             </div>
 
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 text-left space-y-3">

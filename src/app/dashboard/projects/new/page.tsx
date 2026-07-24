@@ -26,6 +26,7 @@ export default function NewProject() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [flyerDateContext, setFlyerDateContext] = useState("");
+  const [fileDates, setFileDates] = useState<string[]>([]);
   const [showDatePickerModal, setShowDatePickerModal] = useState(false);
   const [tempDate, setTempDate] = useState("");
   const [tempExtractedEvents, setTempExtractedEvents] = useState<CalendarEvent[]>([]);
@@ -82,6 +83,14 @@ export default function NewProject() {
       };
       reader.readAsDataURL(file);
     });
+
+    setFileDates((prev) => {
+      const next = [...prev];
+      while (next.length < newFiles.length) {
+        next.push("");
+      }
+      return next.slice(0, 10);
+    });
   };
 
   const removeFile = (index: number) => {
@@ -89,6 +98,7 @@ export default function NewProject() {
     const updatedPreviews = previews.filter((_, i) => i !== index);
     setFiles(updatedFiles);
     setPreviews(updatedPreviews);
+    setFileDates((prev) => prev.filter((_, i) => i !== index));
     setErrorMessage(null);
   };
 
@@ -110,12 +120,15 @@ export default function NewProject() {
       const allExtractedEvents: CalendarEvent[] = [];
       let successCount = 0;
  
-      for (const file of files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileDate = fileDates[i] || activeDate;
+
         const formData = new FormData();
         formData.append("file", file);
         formData.append("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin");
-        if (activeDate) {
-          formData.append("baseDate", activeDate);
+        if (fileDate) {
+          formData.append("baseDate", fileDate);
         }
  
         const res = await fetch("/api/parse", {
@@ -127,7 +140,15 @@ export default function NewProject() {
         const extracted = Array.isArray(data) ? data : data.events;
  
         if (res.ok && extracted) {
-          allExtractedEvents.push(...extracted);
+          const formatted = extracted.map((evt: any) => ({
+            title: evt.title || "Untitled Event",
+            artist: evt.artist || "",
+            date: fileDate || evt.date || new Date().toISOString().split("T")[0],
+            startTime: evt.startTime || evt.start_time || "12:00",
+            endTime: evt.endTime || evt.end_time || "13:00",
+            room: evt.room || evt.location || "Main Stage",
+          }));
+          allExtractedEvents.push(...formatted);
           successCount++;
         } else {
           setErrorMessage(data.error || "Gemini AI API rate limit reached. Please wait a few seconds and try again.");
@@ -136,22 +157,13 @@ export default function NewProject() {
       }
  
       if (successCount === files.length) {
-        const formattedEvents = allExtractedEvents.map((evt) => ({
-          title: evt.title || "Untitled Event",
-          artist: evt.artist || "",
-          date: activeDate || evt.date || new Date().toISOString().split("T")[0],
-          startTime: evt.startTime || evt.start_time || "12:00",
-          endTime: evt.endTime || evt.end_time || "13:00",
-          room: evt.room || evt.location || "Main Stage",
-        }));
-
-        const hasMissingDate = formattedEvents.some((e) => e.date === "date_missing");
+        const hasMissingDate = allExtractedEvents.some((e) => e.date === "date_missing");
         if (hasMissingDate) {
-          setTempExtractedEvents(formattedEvents);
+          setTempExtractedEvents(allExtractedEvents);
           setTempDate("");
           setShowDatePickerModal(true);
         } else {
-          setEvents(formattedEvents);
+          setEvents(allExtractedEvents);
         }
       }
     } catch (err) {
@@ -325,14 +337,32 @@ export default function NewProject() {
 
               {/* Previews */}
               {previews.length > 0 && (
-                <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
                   {previews.map((preview, idx) => (
-                    <div key={idx} className="relative bg-slate-950/60 border border-slate-850 p-2.5 rounded-xl flex items-center gap-3">
-                      <img src={preview} alt={`Flyer Preview ${idx + 1}`} className="w-12 h-12 object-cover rounded-lg border border-slate-800" />
-                      <div className="flex-1 text-left min-w-0">
-                        <p className="text-xs font-bold text-slate-300 truncate">Flyer_Graphic_{idx + 1}.png</p>
-                        <p className="text-[10px] text-slate-500">Ready to parse</p>
+                    <div key={idx} className="relative bg-slate-950/60 border border-slate-850 p-2.5 rounded-xl flex flex-col sm:flex-row sm:items-center gap-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <img src={preview} alt={`Flyer Preview ${idx + 1}`} className="w-12 h-12 object-cover rounded-lg border border-slate-800" />
+                        <div className="flex-1 text-left min-w-0">
+                          <p className="text-xs font-bold text-slate-300 truncate">{files[idx]?.name || `Flyer_Graphic_${idx + 1}.png`}</p>
+                          <p className="text-[10px] text-slate-500">Ready to parse</p>
+                        </div>
                       </div>
+
+                      {/* Optional Date Context input for each specific flyer */}
+                      <div className="flex items-center gap-2">
+                        <label className="text-[9px] font-bold text-slate-500 uppercase whitespace-nowrap">Date Context:</label>
+                        <input
+                          type="date"
+                          value={fileDates[idx] || ""}
+                          onChange={(e) => {
+                            const newDates = [...fileDates];
+                            newDates[idx] = e.target.value;
+                            setFileDates(newDates);
+                          }}
+                          className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 transition-colors"
+                        />
+                      </div>
+
                       <button
                         onClick={() => removeFile(idx)}
                         className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors text-xs"
@@ -348,7 +378,7 @@ export default function NewProject() {
             {/* Optional Date Context Picker */}
             <div className="text-left space-y-1.5 pt-2">
               <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block">
-                Flyer Date Context (Optional)
+                Default Date Context (Optional Fallback)
               </label>
               <input
                 type="date"
@@ -357,7 +387,7 @@ export default function NewProject() {
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-350 focus:outline-none focus:border-indigo-500 transition-colors"
               />
               <p className="text-[9px] text-slate-505 leading-normal">
-                If the flyer only shows weekdays (e.g. "Saturday") or days (e.g. "Day 1"), select a date here to help the AI map it.
+                Fallback date used for any flyer that does not have an individual Date Context specified above.
               </p>
             </div>
 

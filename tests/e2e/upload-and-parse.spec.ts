@@ -27,7 +27,7 @@ test('should upload flyer, parse events, open export modal, and fetch calendar f
   await expect(page.locator('input[value="Deep Dive into Agentic AI"]')).toBeVisible();
 
   // 7. Verify the direct download CTA is displayed in the Export Modal
-  const downloadIcsButton = page.locator('button:has-text("Download Combined .ICS")');
+  const downloadIcsButton = page.locator('button:has-text("Download .ICS")');
   await expect(downloadIcsButton).toBeEnabled();
   await downloadIcsButton.click();
 
