@@ -299,6 +299,64 @@ END:VEVENT
     document.body.removeChild(downloadLink);
   };
 
+  const downloadPngFlyer = async () => {
+    const svgEl = document.getElementById("qr-flyer-svg");
+    if (!svgEl) return;
+
+    try {
+      // 1. Fetch the QR code image and convert it to Base64 to prevent canvas cross-origin tainting
+      const qrRes = await fetch(qrCodeImageUrl);
+      const qrBlob = await qrRes.blob();
+      const reader = new FileReader();
+      
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+      });
+      reader.readAsDataURL(qrBlob);
+      const qrBase64 = await base64Promise;
+
+      // 2. Clone the SVG element and replace the QR code <image> href with the Base64 data URL
+      const svgClone = svgEl.cloneNode(true) as SVGElement;
+      const imageNode = svgClone.querySelector("image");
+      if (imageNode) {
+        imageNode.setAttribute("href", qrBase64);
+      }
+
+      // 3. Serialize the SVG and create an Image object
+      const svgString = new XMLSerializer().serializeToString(svgClone);
+      const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+      const svgUrl = URL.createObjectURL(svgBlob);
+
+      const img = new Image();
+      img.onload = () => {
+        // 4. Create a canvas and draw the SVG image onto it
+        const canvas = document.createElement("canvas");
+        canvas.width = 260 * 2; // Double resolution (520px) for high quality scanning
+        canvas.height = 360 * 2;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          // 5. Convert to PNG data URL and trigger download
+          const pngUrl = canvas.toDataURL("image/png");
+          const downloadLink = document.createElement("a");
+          downloadLink.href = pngUrl;
+          downloadLink.download = `${customLabel.toLowerCase().replace(/\s+/g, "-")}-qr-flyer.png`;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+        }
+        URL.revokeObjectURL(svgUrl);
+      };
+      
+      img.src = svgUrl;
+    } catch (error) {
+      console.error("Failed to generate PNG QR flyer:", error);
+      // Fallback: download SVG if PNG generation fails
+      downloadSvgFlyer();
+    }
+  };
+
   const handleCopyLink = () => {
     navigator.clipboard.writeText(sharedUrl);
     setCopied(true);
@@ -610,7 +668,7 @@ END:VEVENT
 
                 <div className="pt-2 flex flex-col sm:flex-row gap-2">
                   <button
-                    onClick={downloadSvgFlyer}
+                    onClick={downloadPngFlyer}
                     className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition shadow-md flex items-center justify-center gap-1.5"
                   >
                     💾 Download QR Card
