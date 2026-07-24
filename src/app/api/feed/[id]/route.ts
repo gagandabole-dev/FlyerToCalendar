@@ -50,6 +50,7 @@ export async function GET(
     // 3. Construct Calendar
     const cal = new ICalCalendar({
       name: `${project.event_name} - Schedule`,
+      method: 'PUBLISH',
     });
     cal.timezone("Europe/Berlin");
 
@@ -102,7 +103,6 @@ END:VTIMEZONE`;
       status: 200,
       headers: {
         "Content-Type": "text/calendar; charset=utf-8",
-        "Content-Disposition": `attachment; filename="project_${id}.ics"`,
       },
     });
   } catch (err: any) {

@@ -35,26 +35,21 @@ export default function ExportModal({
   eventName,
 }: ExportModalProps) {
   const [copied, setCopied] = useState(false);
-  const [subscribing, setSubscribing] = useState(false);
 
   if (!isOpen) return null;
 
   const host = "flyertocalendar.vercel.app";
   const webcalUrl = `webcal://${host}/api/feed/${projectId || "dummy"}`;
+  const webcalsUrl = `webcals://${host}/api/feed/${projectId || "dummy"}`;
+  const httpUrl = `https://${host}/api/feed/${projectId || "dummy"}`;
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-    webcalUrl
+    webcalsUrl
   )}&color=0f172a&bgcolor=ffffff`;
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(webcalUrl);
+    navigator.clipboard.writeText(httpUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleSubscribe = () => {
-    setSubscribing(true);
-    window.location.href = webcalUrl;
-    setTimeout(() => setSubscribing(false), 2500);
   };
 
   return (
@@ -70,7 +65,7 @@ export default function ExportModal({
 
         <div className="space-y-2">
           <span className="text-4xl block">⚡</span>
-          <h3 className="text-xl font-extrabold text-white">Live Calendar Subscription</h3>
+          <h3 className="text-xl font-extrabold text-white">Live Calendar Sync</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
             Subscribe directly to this live timetable. All events will automatically sync and update in your phone's native calendar.
           </p>
@@ -91,20 +86,31 @@ export default function ExportModal({
           </div>
 
           <div className="space-y-3">
-            <button
-              onClick={handleSubscribe}
+            {/* Primary CTA pointing to webcal:// format */}
+            <a
+              href={webcalUrl}
               className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2"
             >
-              {subscribing ? "Opening Calendar..." : "🔗 1-Click Add to Phone Calendar"}
-            </button>
+              🔗 1-Click Add to Phone Calendar
+            </a>
+
+            {/* Google Calendar Subscription Link for Android and Chrome Web Users */}
+            <a
+              href={`https://www.google.com/calendar/render?cid=${encodeURIComponent(httpUrl)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-3 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"
+            >
+              🤖 Add to Google Calendar (Android & Chrome)
+            </a>
 
             <div className="bg-slate-950 p-3 rounded-xl border border-slate-850 flex items-center justify-between gap-3 text-left">
-              <span className="text-[10px] font-mono text-indigo-400 truncate">{webcalUrl}</span>
+              <span className="text-[10px] font-mono text-indigo-400 truncate">{httpUrl}</span>
               <button
                 onClick={handleCopyLink}
                 className="px-3 py-1 bg-slate-850 hover:bg-slate-800 text-[10px] font-bold rounded-lg border border-slate-700 text-slate-200 hover:text-white transition shrink-0"
               >
-                {copied ? "Copied! ✅" : "Copy Feed Link"}
+                {copied ? "Copied! ✅" : "Copy Link"}
               </button>
             </div>
           </div>
