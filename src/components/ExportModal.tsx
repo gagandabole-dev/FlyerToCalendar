@@ -42,8 +42,9 @@ export default function ExportModal({
   const webcalUrl = `webcal://${host}/api/feed/${projectId || "dummy"}`;
   const webcalsUrl = `webcals://${host}/api/feed/${projectId || "dummy"}`;
   const httpUrl = `https://${host}/api/feed/${projectId || "dummy"}`;
+  const subscribePageUrl = `https://${host}/project/${projectId || "dummy"}/subscribe`;
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
-    webcalsUrl
+    subscribePageUrl
   )}&color=0f172a&bgcolor=ffffff`;
 
   const handleCopyLink = () => {

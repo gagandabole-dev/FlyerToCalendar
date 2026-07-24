@@ -24,6 +24,7 @@ export async function GET(
     }
 
     // 2. Access control check
+    let isPreview = false;
     let allowed = project.status === "paid" || project.status === "bypass";
     if (!allowed) {
       const hasServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY !== "dummy-key-for-build-validation";
@@ -45,7 +46,7 @@ export async function GET(
     }
 
     if (!allowed) {
-      return NextResponse.json({ error: "Access to this calendar feed is locked." }, { status: 403 });
+      isPreview = true;
     }
 
     // 2. Fetch project schedules
@@ -61,18 +62,20 @@ export async function GET(
 
     // 3. Construct Calendar
     const cal = new ICalCalendar({
-      name: `${project.event_name} - Schedule`,
+      name: `${project.event_name}${isPreview ? " [Preview]" : ""} - Schedule`,
       method: 'PUBLISH',
     });
     cal.timezone("Europe/Berlin");
 
-    for (const event of schedules) {
+    const eventsToRender = isPreview ? schedules.slice(0, 5) : schedules;
+
+    for (const event of eventsToRender) {
       cal.createEvent({
         id: event.id,
         sequence: 0,
         start: new Date(event.start_time),
         end: new Date(event.end_time),
-        summary: event.title,
+        summary: `${isPreview ? "[Preview] " : ""}${event.title}`,
         description: event.artist ? `Artist: ${event.artist}` : undefined,
         location: event.room || undefined,
         timezone: "Europe/Berlin",

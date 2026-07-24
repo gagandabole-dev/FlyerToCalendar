@@ -580,13 +580,15 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
                   <button
                     onClick={() => setShowExportModal(true)}
-                    className="flex-1 py-2.5 px-4 rounded-xl font-bold bg-slate-850 hover:bg-slate-800 text-slate-200 hover:text-white transition border border-slate-750 flex items-center justify-center gap-2 text-xs shadow-md"
+                    disabled={anonCreating || !anonProjectId}
+                    className="flex-1 py-2.5 px-4 rounded-xl font-bold bg-slate-850 hover:bg-slate-800 disabled:opacity-50 text-slate-200 hover:text-white transition border border-slate-750 flex items-center justify-center gap-2 text-xs shadow-md"
                   >
-                    <span>💾</span> Download Combined .ICS
+                    {anonCreating ? "🔄 Syncing Feed..." : "💾 Download Combined .ICS"}
                   </button>
                   <button
                     onClick={() => setShowShareModal(true)}
-                    className="flex-1 py-2.5 px-4 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center justify-center gap-2 text-xs shadow-lg shadow-indigo-600/20"
+                    disabled={anonCreating || !anonProjectId}
+                    className="flex-1 py-2.5 px-4 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white transition flex items-center justify-center gap-2 text-xs shadow-lg shadow-indigo-600/20"
                   >
                     <span>🔗</span> Generate Social Link & QR
                   </button>
