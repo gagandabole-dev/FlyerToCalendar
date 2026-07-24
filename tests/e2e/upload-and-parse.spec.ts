@@ -36,7 +36,7 @@ test('should upload flyer, parse events, open export modal, and fetch calendar f
   await expect(ctaButton).toBeVisible();
 
   // 8. Send GET request to /api/feed/[id] and assert headers/content
-  const response = await request.get('/api/feed/mock-project-123');
+  const response = await request.get('/api/feed/mock-project-123/calendar.ics');
   expect(response.status()).toBe(200);
   expect(response.headers()['content-type']).toBe('text/calendar; charset=utf-8');
 

@@ -45,8 +45,8 @@ export default function ExportModal({
 
   if (!isOpen) return null;
 
-  const webcalUrl = origin.replace(/^https?:/, "webcal:") + `/api/feed/${projectId || "dummy"}`;
-  const httpUrl = `${origin}/api/feed/${projectId || "dummy"}`;
+  const webcalUrl = origin.replace(/^https?:/, "webcal:") + `/api/feed/${projectId || "dummy"}/calendar.ics`;
+  const httpUrl = `${origin}/api/feed/${projectId || "dummy"}/calendar.ics`;
   const subscribePageUrl = `${origin}/project/${projectId || "dummy"}/subscribe`;
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
     subscribePageUrl

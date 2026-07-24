@@ -43,8 +43,8 @@ export default function SubscribeLandingPage({ params }: { params: Promise<{ id:
   }, []);
 
   const eventName = project?.event_name || "Festival Schedule";
-  const webcalUrl = origin.replace(/^https?:/, "webcal:") + `/api/feed/${id}`;
-  const httpUrl = `${origin}/api/feed/${id}`;
+  const webcalUrl = origin.replace(/^https?:/, "webcal:") + `/api/feed/${id}/calendar.ics`;
+  const httpUrl = `${origin}/api/feed/${id}/calendar.ics`;
   const googleCalUrl = `https://www.google.com/calendar/render?cid=${encodeURIComponent(httpUrl)}`;
 
   return (

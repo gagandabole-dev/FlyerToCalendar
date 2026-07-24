@@ -4,10 +4,11 @@ import { ICalCalendar } from "ical-generator";
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ slug: string[] }> }
 ) {
   try {
-    const { id } = await params;
+    const { slug } = await params;
+    const id = slug ? slug[0] : null;
     if (!id) {
       return NextResponse.json({ error: "Missing required parameter: id" }, { status: 400 });
     }
