@@ -26,13 +26,13 @@ test('should upload flyer, parse events, open export modal, and fetch calendar f
   await expect(page.locator('input[value="Opening Keynote"]')).toBeVisible();
   await expect(page.locator('input[value="Deep Dive into Agentic AI"]')).toBeVisible();
 
-  // 7. Verify the "1-Click Dynamic Sync" CTA is displayed in the Export Modal
+  // 7. Verify the direct download CTA is displayed in the Export Modal
   const downloadIcsButton = page.locator('button:has-text("Download Combined .ICS")');
   await expect(downloadIcsButton).toBeEnabled();
   await downloadIcsButton.click();
 
-  // Verify the "1-Click Dynamic Sync" CTA is visible
-  const ctaButton = page.locator('a:has-text("1-Click Dynamic Sync")');
+  // Verify the "Download Calendar File (.ics)" CTA is visible
+  const ctaButton = page.locator('button:has-text("Download Calendar File (.ics)")');
   await expect(ctaButton).toBeVisible();
 
   // 8. Send GET request to /api/feed/[id] and assert headers/content

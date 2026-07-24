@@ -34,7 +34,6 @@ export default function ExportModal({
   userEmail,
   eventName,
 }: ExportModalProps) {
-  const [copied, setCopied] = useState(false);
   const [origin, setOrigin] = useState("https://flyertocalendar.vercel.app");
 
   useEffect(() => {
@@ -45,17 +44,96 @@ export default function ExportModal({
 
   if (!isOpen) return null;
 
-  const webcalUrl = origin.replace(/^https?:/, "webcal:") + `/api/feed/${projectId || "dummy"}/calendar.ics`;
-  const httpUrl = `${origin}/api/feed/${projectId || "dummy"}/calendar.ics`;
+  const isPreview = status !== "paid" && status !== "bypass" && userEmail?.toLowerCase() !== "gagan.dabole@gmail.com";
   const subscribePageUrl = `${origin}/project/${projectId || "dummy"}/subscribe`;
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
     subscribePageUrl
   )}&color=0f172a&bgcolor=ffffff`;
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(httpUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleIcsDownload = () => {
+    let icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//FlyerToCalendar//NONSGML v1.0//EN
+BEGIN:VTIMEZONE
+TZID:Europe/Berlin
+X-LIC-LOCATION:Europe/Berlin
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+`;
+
+    const eventsToExport = isPreview ? events.slice(0, 5) : events;
+
+    eventsToExport.forEach((item: any) => {
+      const sTimeStr = item.start_time || item.startTime;
+      const eTimeStr = item.end_time || item.endTime;
+      
+      let sDate: Date;
+      let eDate: Date;
+      
+      if (sTimeStr && sTimeStr.includes("T")) {
+        sDate = new Date(sTimeStr);
+      } else {
+        const dateStr = item.date || new Date().toISOString().split("T")[0];
+        sDate = new Date(`${dateStr}T${item.startTime || "12:00"}`);
+      }
+
+      if (eTimeStr && eTimeStr.includes("T")) {
+        eDate = new Date(eTimeStr);
+      } else {
+        const dateStr = item.date || new Date().toISOString().split("T")[0];
+        eDate = new Date(`${dateStr}T${item.endTime || "13:00"}`);
+      }
+
+      // Fallback for invalid dates
+      if (isNaN(sDate.getTime())) sDate = new Date();
+      if (isNaN(eDate.getTime())) eDate = new Date(sDate.getTime() + 3600000);
+
+      // Fix overnight events going past midnight
+      if (eDate <= sDate) {
+        eDate.setDate(eDate.getDate() + 1);
+      }
+
+      const pad = (num: number) => String(num).padStart(2, "0");
+      const cleanStartDate = `${sDate.getFullYear()}${pad(sDate.getMonth() + 1)}${pad(sDate.getDate())}`;
+      const startClean = `${pad(sDate.getHours())}${pad(sDate.getMinutes())}00`;
+      const cleanEndDate = `${eDate.getFullYear()}${pad(eDate.getMonth() + 1)}${pad(eDate.getDate())}`;
+      const endClean = `${pad(eDate.getHours())}${pad(eDate.getMinutes())}00`;
+
+      const uid = item.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@flyertocalendar.app`;
+      
+      icsContent += `BEGIN:VEVENT
+UID:${uid}
+SUMMARY:${item.title}${item.artist ? ` - ${item.artist}` : ""}
+DTSTART;TZID=Europe/Berlin:${cleanStartDate}T${startClean}
+DTEND;TZID=Europe/Berlin:${cleanEndDate}T${endClean}
+LOCATION:${item.room || item.location || ""}
+END:VEVENT
+`;
+    });
+
+    icsContent += "END:VCALENDAR";
+    icsContent = icsContent.replace(/\r?\n/g, "\r\n");
+
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `${eventName.toLowerCase().replace(/\s+/g, "-")}-schedule.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -70,10 +148,10 @@ export default function ExportModal({
         </button>
 
         <div className="space-y-2">
-          <span className="text-4xl block">⚡</span>
-          <h3 className="text-xl font-extrabold text-white">Live Calendar Sync</h3>
+          <span className="text-4xl block">📅</span>
+          <h3 className="text-xl font-extrabold text-white">Download Calendar</h3>
           <p className="text-xs text-slate-400 leading-relaxed">
-            Subscribe directly to this live timetable. All events will automatically sync and update in your phone's native calendar.
+            Download the timetable as an `.ics` file to import all events directly into your phone or desktop calendar.
           </p>
         </div>
 
@@ -82,43 +160,39 @@ export default function ExportModal({
             <div className="bg-white p-3 rounded-2xl shadow-lg border border-slate-700">
               <img
                 src={qrCodeImageUrl}
-                alt="Webcal Subscription QR Code"
+                alt="Schedule QR Code"
                 className="w-44 h-44 object-contain"
               />
             </div>
             <p className="text-[10px] text-slate-400 leading-normal max-w-xs">
-              Scan with your phone camera to subscribe to the live dynamic calendar feed directly on your mobile device!
+              Scan with your phone camera to open this landing page on your mobile device and download the calendar directly!
             </p>
           </div>
 
           <div className="space-y-3">
-            {/* Primary CTA pointing to webcal:// format */}
-            <a
-              href={webcalUrl}
-              className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2"
+            {/* Primary CTA to download static ICS file directly */}
+            <button
+              onClick={handleIcsDownload}
+              className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2"
             >
-              🔗 1-Click Dynamic Sync
-            </a>
+              📥 Download Calendar File (.ics)
+            </button>
 
-            {/* Google Calendar Subscription Link for Android and Chrome Web Users */}
-            <a
-              href={`https://www.google.com/calendar/render?cid=${encodeURIComponent(httpUrl)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3 bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2"
-            >
-              🤖 Add to Google Calendar (Android & Chrome)
-            </a>
-
-            <div className="bg-slate-950 p-3 rounded-xl border border-slate-850 flex items-center justify-between gap-3 text-left">
-              <span className="text-[10px] font-mono text-indigo-400 truncate">{httpUrl}</span>
-              <button
-                onClick={handleCopyLink}
-                className="px-3 py-1 bg-slate-850 hover:bg-slate-800 text-[10px] font-bold rounded-lg border border-slate-700 text-slate-200 hover:text-white transition shrink-0"
-              >
-                {copied ? "Copied! ✅" : "Copy Link"}
-              </button>
-            </div>
+            {isPreview ? (
+              <div className="bg-amber-500/10 border border-amber-500/25 p-3 rounded-xl text-left">
+                <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Preview Mode</p>
+                <p className="text-[11px] text-amber-250 mt-1 leading-normal">
+                  Since this event pass is not activated, only the **first 5 events** will be exported. Activate the event pass to unlock the full schedule.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-emerald-500/10 border border-emerald-500/25 p-3 rounded-xl text-left">
+                <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Full Access</p>
+                <p className="text-[11px] text-emerald-250 mt-1 leading-normal">
+                  You have full access. The complete schedule will be exported.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
