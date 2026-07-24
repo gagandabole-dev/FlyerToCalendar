@@ -220,7 +220,9 @@ export default function Home() {
           setShowDatePickerModal(true);
         } else {
           setEvents(formattedEvents);
-          createAnonymousProject("Public Flyer Schedule", formattedEvents);
+          if (userMode === "organizer") {
+            createAnonymousProject("Public Flyer Schedule", formattedEvents);
+          }
         }
       }
     } catch (err) {
@@ -275,21 +277,45 @@ export default function Home() {
   // Calendar Exports
   const triggerIcsDownload = (calendarName?: string) => {
     if (events.length === 0) return;
-    
-    let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//FlyerToCalendar//NONSGML v1.0//EN\n";
-    events.forEach(event => {
-      const cleanDate = event.date.replace(/-/g, "");
-      const startClean = event.startTime.replace(/:/g, "") + "00";
-      const endClean = event.endTime.replace(/:/g, "") + "00";
-      icsContent += `BEGIN:VEVENT\nSUMMARY:${event.title} - ${event.artist}\nDTSTART:${cleanDate}T${startClean}\nDTEND:${cleanDate}T${endClean}\nLOCATION:${event.room}\nEND:VEVENT\n`;
-    });
-    icsContent += "END:VCALENDAR";
 
-    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = calendarName ? `${calendarName}-schedule.ics` : "festival-events.ics";
-    link.click();
+    const downloadChunk = (chunk: CalendarEvent[], partNum: number) => {
+      let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//FlyerToCalendar//NONSGML v1.0//EN\n";
+      chunk.forEach((item: any) => {
+        const sTimeStr = item.start_time || item.startTime;
+        const eTimeStr = item.end_time || item.endTime;
+        const sDate = sTimeStr ? new Date(sTimeStr) : new Date(`${item.date}T${item.startTime}`);
+        const eDate = eTimeStr ? new Date(eTimeStr) : new Date(`${item.date}T${item.endTime}`);
+
+        const pad = (num: number) => String(num).padStart(2, "0");
+        const cleanDate = `${sDate.getFullYear()}${pad(sDate.getMonth() + 1)}${pad(sDate.getDate())}`;
+        const startClean = `${pad(sDate.getHours())}${pad(sDate.getMinutes())}00`;
+        const endClean = `${pad(eDate.getHours())}${pad(eDate.getMinutes())}00`;
+
+        icsContent += `BEGIN:VEVENT\nSUMMARY:${item.title} - ${item.artist || ""}\nDTSTART:${cleanDate}T${startClean}\nDTEND:${cleanDate}T${endClean}\nLOCATION:${item.room || item.location || ""}\nEND:VEVENT\n`;
+      });
+      icsContent += "END:VCALENDAR";
+
+      const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = calendarName ? `${calendarName}-part${partNum}.ics` : `events-part${partNum}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    if (events.length <= 10) {
+      downloadChunk(events, 1);
+    } else {
+      const chunkSize = 10;
+      for (let i = 0; i < events.length; i += chunkSize) {
+        const chunk = events.slice(i, i + chunkSize);
+        const partNum = Math.floor(i / chunkSize) + 1;
+        setTimeout(() => {
+          downloadChunk(chunk, partNum);
+        }, (i / chunkSize) * 300);
+      }
+    }
   };
 
   const handleCopyLink = () => {
@@ -521,11 +547,10 @@ export default function Home() {
                 </h2>
                 {events.length > 0 && userMode === "user" && (
                   <button
-                    onClick={() => setShowExportModal(true)}
-                    disabled={anonCreating || !anonProjectId}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-xs font-bold rounded-lg text-white transition shadow-md flex items-center gap-1.5"
+                    onClick={() => triggerIcsDownload("flyer")}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg text-white transition shadow-md flex items-center gap-1.5"
                   >
-                    {anonCreating ? "🔄 Syncing Feed..." : "📅 Export to Calendar (.ics)"}
+                    📅 Export to Calendar (.ics)
                   </button>
                 )}
               </div>
@@ -651,11 +676,10 @@ export default function Home() {
                 {userMode === "user" && (
                   <div className="pt-4 border-t border-slate-850 flex flex-col sm:flex-row gap-3">
                     <button
-                      onClick={() => setShowExportModal(true)}
-                      disabled={anonCreating || !anonProjectId}
-                      className="flex-1 py-3 px-5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white transition flex items-center justify-center gap-2 text-sm shadow-md"
+                      onClick={() => triggerIcsDownload("flyer")}
+                      className="flex-1 py-3 px-5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center justify-center gap-2 text-sm shadow-md"
                     >
-                      {anonCreating ? "🔄 Syncing Feed..." : <span className="flex items-center gap-1.5">💾 Export Calendar (.ICS)</span>}
+                      <span className="flex items-center gap-1.5">💾 Export Calendar (.ICS)</span>
                     </button>
                   </div>
                 )}
@@ -782,7 +806,9 @@ export default function Home() {
                     setEvents(finalEvents);
                     setFlyerDateContext(tempDate);
                     setShowDatePickerModal(false);
-                    createAnonymousProject("Public Flyer Schedule", finalEvents);
+                    if (userMode === "organizer") {
+                      createAnonymousProject("Public Flyer Schedule", finalEvents);
+                    }
                   } else {
                     alert("Please select a date, or click 'Skip' to set today's date.");
                   }
@@ -801,7 +827,9 @@ export default function Home() {
                   }));
                   setEvents(finalEvents);
                   setShowDatePickerModal(false);
-                  createAnonymousProject("Public Flyer Schedule", finalEvents);
+                  if (userMode === "organizer") {
+                    createAnonymousProject("Public Flyer Schedule", finalEvents);
+                  }
                 }}
                 className="w-full py-2.5 bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-750 rounded-xl text-xs font-bold transition"
               >
