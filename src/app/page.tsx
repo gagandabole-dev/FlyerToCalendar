@@ -655,7 +655,7 @@ export default function Home() {
                       disabled={anonCreating || !anonProjectId}
                       className="flex-1 py-3 px-5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white transition flex items-center justify-center gap-2 text-sm shadow-md"
                     >
-                      {anonCreating ? "🔄 Syncing Feed..." : "<span>💾</span> Export Calendar (.ICS)"}
+                      {anonCreating ? "🔄 Syncing Feed..." : <span className="flex items-center gap-1.5">💾 Export Calendar (.ICS)</span>}
                     </button>
                   </div>
                 )}

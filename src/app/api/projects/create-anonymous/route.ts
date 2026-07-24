@@ -9,22 +9,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required parameters: eventName and events" }, { status: 400 });
     }
 
-    // 1. Resolve Super-Admin User ID to satisfy FK constraint
+    // 1. Resolve Super-Admin or System User ID to satisfy FK constraint
+    let userId = "";
     const { data: userList, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    if (listError || !userList?.users) {
-      return NextResponse.json({ error: "Failed to resolve system admin user." }, { status: 500 });
-    }
-
-    const adminUser = userList.users.find(u => u.email?.toLowerCase() === "gagan.dabole@gmail.com");
-    if (!adminUser) {
-      return NextResponse.json({ error: "Super-Admin user not found. Please register gagan.dabole@gmail.com first." }, { status: 500 });
+    if (!listError && userList?.users && userList.users.length > 0) {
+      const adminUser = userList.users.find(u => u.email?.toLowerCase() === "gagan.dabole@gmail.com") || userList.users[0];
+      userId = adminUser.id;
+    } else {
+      // Create a system user to associate anonymous projects with
+      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email: "system-anonymous@flyertocalendar.app",
+        password: "system-anonymous-temp-password-123",
+        email_confirm: true
+      });
+      if (newUser?.user) {
+        userId = newUser.user.id;
+      } else {
+        return NextResponse.json({ error: createError?.message || "Failed to resolve system user." }, { status: 500 });
+      }
     }
 
     // 2. Create dynamic anonymous project (bypass status enabled for universal compatibility)
     const { data: project, error: pError } = await supabaseAdmin
       .from("projects")
       .insert({
-        user_id: adminUser.id,
+        user_id: userId,
         event_name: eventName,
         status: "bypass",
       })
