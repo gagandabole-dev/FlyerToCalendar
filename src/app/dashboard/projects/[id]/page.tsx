@@ -299,62 +299,106 @@ END:VEVENT
     document.body.removeChild(downloadLink);
   };
 
-  const downloadPngFlyer = async () => {
-    const svgEl = document.getElementById("qr-flyer-svg");
-    if (!svgEl) return;
+  const downloadPngFlyer = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 520; // 260 * 2
+    canvas.height = 720; // 360 * 2
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    try {
-      // 1. Fetch the QR code image and convert it to Base64 to prevent canvas cross-origin tainting
-      const qrRes = await fetch(qrCodeImageUrl);
-      const qrBlob = await qrRes.blob();
-      const reader = new FileReader();
-      
-      const base64Promise = new Promise<string>((resolve) => {
-        reader.onloadend = () => resolve(reader.result as string);
-      });
-      reader.readAsDataURL(qrBlob);
-      const qrBase64 = await base64Promise;
+    // Helper to draw a rounded rectangle
+    const drawRoundRect = (
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+      radius: number,
+      fillColor: string
+    ) => {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+      ctx.fillStyle = fillColor;
+      ctx.fill();
+    };
 
-      // 2. Clone the SVG element and replace the QR code <image> href with the Base64 data URL
-      const svgClone = svgEl.cloneNode(true) as SVGElement;
-      const imageNode = svgClone.querySelector("image");
-      if (imageNode) {
-        imageNode.setAttribute("href", qrBase64);
-      }
+    // Scale context by 2 for double resolution crispness
+    ctx.scale(2, 2);
 
-      // 3. Serialize the SVG and create an Image object
-      const svgString = new XMLSerializer().serializeToString(svgClone);
-      const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
-      const svgUrl = URL.createObjectURL(svgBlob);
+    // 1. Draw Background Card
+    drawRoundRect(0, 0, 260, 360, 16, "#0f172a");
 
-      const img = new Image();
-      img.onload = () => {
-        // 4. Create a canvas and draw the SVG image onto it
-        const canvas = document.createElement("canvas");
-        canvas.width = 260 * 2; // Double resolution (520px) for high quality scanning
-        canvas.height = 360 * 2;
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          
-          // 5. Convert to PNG data URL and trigger download
-          const pngUrl = canvas.toDataURL("image/png");
-          const downloadLink = document.createElement("a");
-          downloadLink.href = pngUrl;
-          downloadLink.download = `${customLabel.toLowerCase().replace(/\s+/g, "-")}-qr-flyer.png`;
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-          document.body.removeChild(downloadLink);
-        }
-        URL.revokeObjectURL(svgUrl);
-      };
-      
-      img.src = svgUrl;
-    } catch (error) {
-      console.error("Failed to generate PNG QR flyer:", error);
-      // Fallback: download SVG if PNG generation fails
-      downloadSvgFlyer();
-    }
+    // 2. Draw Header Card
+    drawRoundRect(20, 20, 220, 52, 10, "#1e293b");
+
+    // 3. Draw Header text
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    
+    // Title
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 13px sans-serif";
+    const titleText = customLabel || "Event Schedule";
+    ctx.fillText(titleText, 130, 40);
+
+    // Subtitle inside header
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = "9px sans-serif";
+    ctx.fillText("Event Schedule", 130, 56);
+
+    // 4. Draw subtitle under header
+    ctx.fillStyle = "#64748b";
+    ctx.font = "8px sans-serif";
+    ctx.fillText("Scan to add the schedule to your calendar", 130, 88);
+
+    // 5. Draw White Background Card for QR
+    drawRoundRect(55, 106, 150, 150, 8, "#ffffff");
+
+    // 6. Draw Footer branding
+    ctx.fillStyle = "#818cf8";
+    ctx.font = "bold 11px sans-serif";
+    ctx.fillText("⚡ FlyerToCalendar", 130, 302);
+
+    ctx.fillStyle = "#475569";
+    ctx.font = "8px sans-serif";
+    ctx.fillText("flyertocalendar.vercel.app", 130, 322);
+
+    // 7. Load and draw QR code image
+    const qrImg = new Image();
+    qrImg.crossOrigin = "anonymous";
+    qrImg.onload = () => {
+      // Draw QR code image onto canvas
+      ctx.drawImage(qrImg, 67, 118, 126, 126);
+
+      // Trigger PNG download
+      const pngUrl = canvas.toDataURL("image/png");
+      const downloadLink = document.createElement("a");
+      downloadLink.href = pngUrl;
+      downloadLink.download = `${(customLabel || "event").toLowerCase().replace(/\s+/g, "-")}-qr-card.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    };
+    qrImg.onerror = (err) => {
+      console.error("Failed to load QR code image for PNG generation", err);
+      // Fallback: download canvas without QR or trigger SVG fallback
+      const pngUrl = canvas.toDataURL("image/png");
+      const downloadLink = document.createElement("a");
+      downloadLink.href = pngUrl;
+      downloadLink.download = `${(customLabel || "event").toLowerCase().replace(/\s+/g, "-")}-qr-card.png`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    };
+    qrImg.src = qrCodeImageUrl;
   };
 
   const handleCopyLink = () => {
