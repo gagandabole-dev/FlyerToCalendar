@@ -227,14 +227,50 @@ export default function ProjectEditor({ params }: { params: Promise<{ id: string
   const triggerCombinedIcsDownload = () => {
     if (schedules.length === 0) return;
     
-    let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//FlyerToCalendar//NONSGML v1.0//EN\n";
+    let icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//FlyerToCalendar//NONSGML v1.0//EN
+BEGIN:VTIMEZONE
+TZID:Europe/Berlin
+X-LIC-LOCATION:Europe/Berlin
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+`;
     schedules.forEach((item: any) => {
-      const cleanDate = item.date.replace(/-/g, "");
-      const startClean = item.startTime.replace(/:/g, "") + "00";
-      const endClean = item.endTime.replace(/:/g, "") + "00";
-      icsContent += `BEGIN:VEVENT\nSUMMARY:${item.title} - ${item.artist}\nDTSTART:${cleanDate}T${startClean}\nDTEND:${cleanDate}T${endClean}\nLOCATION:${item.room}\nEND:VEVENT\n`;
+      const sDate = new Date(item.start_time);
+      const eDate = new Date(item.end_time);
+
+      const pad = (num: number) => String(num).padStart(2, "0");
+      const cleanStartDate = `${sDate.getFullYear()}${pad(sDate.getMonth() + 1)}${pad(sDate.getDate())}`;
+      const startClean = `${pad(sDate.getHours())}${pad(sDate.getMinutes())}00`;
+      const cleanEndDate = `${eDate.getFullYear()}${pad(eDate.getMonth() + 1)}${pad(eDate.getDate())}`;
+      const endClean = `${pad(eDate.getHours())}${pad(eDate.getMinutes())}00`;
+
+      const uid = item.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@flyertocalendar.app`;
+      icsContent += `BEGIN:VEVENT
+UID:${uid}
+SUMMARY:${item.title} - ${item.artist || ""}
+DTSTART;TZID=Europe/Berlin:${cleanStartDate}T${startClean}
+DTEND;TZID=Europe/Berlin:${cleanEndDate}T${endClean}
+LOCATION:${item.room || ""}
+END:VEVENT
+`;
     });
     icsContent += "END:VCALENDAR";
+    icsContent = icsContent.replace(/\r?\n/g, "\r\n");
 
     const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
     const link = document.createElement("a");

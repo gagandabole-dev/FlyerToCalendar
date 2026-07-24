@@ -93,14 +93,55 @@ export default function Home() {
           setEvents(parsedEvents);
           
           // Generate & trigger immediate download of the calendar .ics file to reduce friction
-          let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//FlyerToCalendar//NONSGML v1.0//EN\n";
+          let icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//FlyerToCalendar//NONSGML v1.0//EN
+BEGIN:VTIMEZONE
+TZID:Europe/Berlin
+X-LIC-LOCATION:Europe/Berlin
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+`;
           parsedEvents.forEach(event => {
-            const cleanDate = (event.date || "").replace(/-/g, "");
-            const startClean = (event.startTime || "12:00").replace(/:/g, "") + "00";
-            const endClean = (event.endTime || "13:00").replace(/:/g, "") + "00";
-            icsContent += `BEGIN:VEVENT\nSUMMARY:${event.title} - ${event.artist}\nDTSTART:${cleanDate}T${startClean}\nDTEND:${cleanDate}T${endClean}\nLOCATION:${event.room}\nEND:VEVENT\n`;
+            const normDate = normalizeDateStr(event.date);
+            const sDate = new Date(`${normDate}T${event.startTime || "12:00"}`);
+            let eDate = new Date(`${normDate}T${event.endTime || "13:00"}`);
+            
+            if (eDate <= sDate) {
+              eDate.setDate(eDate.getDate() + 1);
+            }
+
+            const pad = (num: number) => String(num).padStart(2, "0");
+            const cleanStartDate = `${sDate.getFullYear()}${pad(sDate.getMonth() + 1)}${pad(sDate.getDate())}`;
+            const startClean = `${pad(sDate.getHours())}${pad(sDate.getMinutes())}00`;
+            const cleanEndDate = `${eDate.getFullYear()}${pad(eDate.getMonth() + 1)}${pad(eDate.getDate())}`;
+            const endClean = `${pad(eDate.getHours())}${pad(eDate.getMinutes())}00`;
+
+            const uid = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@flyertocalendar.app`;
+            icsContent += `BEGIN:VEVENT
+UID:${uid}
+SUMMARY:${event.title} - ${event.artist || ""}
+DTSTART;TZID=Europe/Berlin:${cleanStartDate}T${startClean}
+DTEND;TZID=Europe/Berlin:${cleanEndDate}T${endClean}
+LOCATION:${event.room || ""}
+END:VEVENT
+`;
           });
           icsContent += "END:VCALENDAR";
+          icsContent = icsContent.replace(/\r?\n/g, "\r\n");
 
           const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
           const link = document.createElement("a");
@@ -280,7 +321,28 @@ export default function Home() {
     if (events.length === 0) return;
 
     const downloadChunk = (chunk: CalendarEvent[], partNum: number) => {
-      let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//FlyerToCalendar//NONSGML v1.0//EN\n";
+      let icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//FlyerToCalendar//NONSGML v1.0//EN
+BEGIN:VTIMEZONE
+TZID:Europe/Berlin
+X-LIC-LOCATION:Europe/Berlin
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+`;
       chunk.forEach((item: any) => {
         const sTimeStr = item.start_time || item.startTime;
         const eTimeStr = item.end_time || item.endTime;
@@ -306,14 +368,29 @@ export default function Home() {
         if (isNaN(sDate.getTime())) sDate = new Date();
         if (isNaN(eDate.getTime())) eDate = new Date(sDate.getTime() + 3600000);
 
+        // Fix overnight events going past midnight
+        if (eDate <= sDate) {
+          eDate.setDate(eDate.getDate() + 1);
+        }
+
         const pad = (num: number) => String(num).padStart(2, "0");
-        const cleanDate = `${sDate.getFullYear()}${pad(sDate.getMonth() + 1)}${pad(sDate.getDate())}`;
+        const cleanStartDate = `${sDate.getFullYear()}${pad(sDate.getMonth() + 1)}${pad(sDate.getDate())}`;
         const startClean = `${pad(sDate.getHours())}${pad(sDate.getMinutes())}00`;
+        const cleanEndDate = `${eDate.getFullYear()}${pad(eDate.getMonth() + 1)}${pad(eDate.getDate())}`;
         const endClean = `${pad(eDate.getHours())}${pad(eDate.getMinutes())}00`;
 
-        icsContent += `BEGIN:VEVENT\nSUMMARY:${item.title} - ${item.artist || ""}\nDTSTART:${cleanDate}T${startClean}\nDTEND:${cleanDate}T${endClean}\nLOCATION:${item.room || item.location || ""}\nEND:VEVENT\n`;
+        const uid = item.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@flyertocalendar.app`;
+        icsContent += `BEGIN:VEVENT
+UID:${uid}
+SUMMARY:${item.title} - ${item.artist || ""}
+DTSTART;TZID=Europe/Berlin:${cleanStartDate}T${startClean}
+DTEND;TZID=Europe/Berlin:${cleanEndDate}T${endClean}
+LOCATION:${item.room || item.location || ""}
+END:VEVENT
+`;
       });
       icsContent += "END:VCALENDAR";
+      icsContent = icsContent.replace(/\r?\n/g, "\r\n");
 
       const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
       const link = document.createElement("a");
