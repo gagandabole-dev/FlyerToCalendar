@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase, supabaseAdmin } from "@/lib/supabaseClient";
 import { ICalCalendar } from "ical-generator";
 
 export async function GET(
@@ -21,6 +21,19 @@ export async function GET(
 
     if (projectError || !project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    }
+
+    // 2. Access control check
+    let allowed = project.status === "paid" || project.status === "bypass";
+    if (!allowed) {
+      const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(project.user_id);
+      if (!userError && userData?.user?.email) {
+        allowed = userData.user.email.toLowerCase() === "gagan.dabole@gmail.com";
+      }
+    }
+
+    if (!allowed) {
+      return NextResponse.json({ error: "Access to this calendar feed is locked." }, { status: 403 });
     }
 
     // 2. Fetch project schedules

@@ -26,6 +26,8 @@ export default function Home() {
   const [tempDate, setTempDate] = useState("");
   const [tempExtractedEvents, setTempExtractedEvents] = useState<CalendarEvent[]>([]);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [anonProjectId, setAnonProjectId] = useState<string | null>(null);
+  const [anonCreating, setAnonCreating] = useState(false);
   
   // Organizer waitlist
   const [email, setEmail] = useState("");
@@ -210,7 +212,7 @@ export default function Home() {
           endTime: evt.endTime || evt.end_time || "13:00",
           room: evt.room || evt.location || "Main Stage",
         }));
-
+ 
         const hasMissingDate = formattedEvents.some((e) => e.date === "date_missing");
         if (hasMissingDate) {
           setTempExtractedEvents(formattedEvents);
@@ -218,6 +220,7 @@ export default function Home() {
           setShowDatePickerModal(true);
         } else {
           setEvents(formattedEvents);
+          createAnonymousProject("Public Flyer Schedule", formattedEvents);
         }
       }
     } catch (err) {
@@ -228,7 +231,25 @@ export default function Home() {
       startCooldown();
     }
   };
-
+  const createAnonymousProject = async (eventName: string, eventsList: CalendarEvent[]) => {
+    setAnonCreating(true);
+    setAnonProjectId(null);
+    try {
+      const res = await fetch("/api/projects/create-anonymous", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventName, events: eventsList }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAnonProjectId(data.projectId);
+      }
+    } catch (err) {
+      console.error("Failed to create anonymous project feed:", err);
+    } finally {
+      setAnonCreating(false);
+    }
+  };
   const updateEventField = (index: number, field: keyof CalendarEvent, value: string) => {
     const updated = [...events];
     updated[index] = { ...updated[index], [field]: value };
@@ -501,9 +522,10 @@ export default function Home() {
                 {events.length > 0 && userMode === "user" && (
                   <button
                     onClick={() => setShowExportModal(true)}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg text-white transition shadow-md flex items-center gap-1.5"
+                    disabled={anonCreating || !anonProjectId}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-xs font-bold rounded-lg text-white transition shadow-md flex items-center gap-1.5"
                   >
-                    📅 Export to Calendar (.ics)
+                    {anonCreating ? "🔄 Syncing Feed..." : "📅 Export to Calendar (.ics)"}
                   </button>
                 )}
               </div>
@@ -630,9 +652,10 @@ export default function Home() {
                   <div className="pt-4 border-t border-slate-850 flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => setShowExportModal(true)}
-                      className="flex-1 py-3 px-5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center justify-center gap-2 text-sm shadow-md"
+                      disabled={anonCreating || !anonProjectId}
+                      className="flex-1 py-3 px-5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white transition flex items-center justify-center gap-2 text-sm shadow-md"
                     >
-                      <span>💾</span> Export Calendar (.ICS)
+                      {anonCreating ? "🔄 Syncing Feed..." : "<span>💾</span> Export Calendar (.ICS)"}
                     </button>
                   </div>
                 )}
@@ -759,6 +782,7 @@ export default function Home() {
                     setEvents(finalEvents);
                     setFlyerDateContext(tempDate);
                     setShowDatePickerModal(false);
+                    createAnonymousProject("Public Flyer Schedule", finalEvents);
                   } else {
                     alert("Please select a date, or click 'Skip' to set today's date.");
                   }
@@ -777,6 +801,7 @@ export default function Home() {
                   }));
                   setEvents(finalEvents);
                   setShowDatePickerModal(false);
+                  createAnonymousProject("Public Flyer Schedule", finalEvents);
                 }}
                 className="w-full py-2.5 bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-750 rounded-xl text-xs font-bold transition"
               >
@@ -791,6 +816,7 @@ export default function Home() {
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}
         events={events}
+        projectId={anonProjectId || undefined}
         eventName="flyertocalendar"
       />
     </main>
