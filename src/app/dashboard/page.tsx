@@ -18,7 +18,35 @@ export default function Dashboard() {
   const [user, setUser] = useState<any>(null);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const router = useRouter();
+
+  const confirmDeleteProject = (project: Project) => {
+    setProjectToDelete(project);
+  };
+
+  const handleDeleteProject = async () => {
+    if (!projectToDelete) return;
+    setDeleting(true);
+
+    try {
+      const { error } = await supabase
+        .from("projects")
+        .delete()
+        .eq("id", projectToDelete.id);
+
+      if (error) throw error;
+
+      setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+      alert("Failed to delete project. Please try again.");
+    } finally {
+      setDeleting(false);
+      setProjectToDelete(null);
+    }
+  };
 
   useEffect(() => {
     const checkUserAndFetchProjects = async () => {
@@ -208,10 +236,17 @@ export default function Dashboard() {
                   <div className="flex items-center gap-2 pt-2 border-t border-slate-950/60">
                     <Link
                       href={`/dashboard/projects/${project.id}`}
-                      className="flex-1 py-2 text-center bg-slate-950 hover:bg-slate-850 text-xs font-semibold rounded-lg text-slate-200 hover:text-white transition border border-slate-800"
+                      className="flex-1 py-2 text-center bg-slate-950 hover:bg-slate-855 text-xs font-semibold rounded-lg text-slate-200 hover:text-white transition border border-slate-800"
                     >
                       ✏️ Edit Schedule
                     </Link>
+                    <button
+                      onClick={() => confirmDeleteProject(project)}
+                      className="px-3.5 py-2 bg-slate-950 hover:bg-rose-950/40 text-slate-400 hover:text-rose-400 text-xs font-semibold rounded-lg transition border border-slate-800 hover:border-rose-900/40"
+                      title="Delete Project"
+                    >
+                      🗑️
+                    </button>
                   </div>
                 </div>
               ))}
@@ -220,6 +255,44 @@ export default function Dashboard() {
         </div>
 
       </div>
+
+      {/* Confirmation Modal */}
+      {projectToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4 text-left">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <span>⚠️</span> Delete Project?
+            </h3>
+            <p className="text-xs text-slate-350 leading-relaxed">
+              Are you sure you want to delete <span className="font-semibold text-white">"{projectToDelete.event_name}"</span>? 
+              This will permanently delete the project and all of its schedules. This action cannot be undone.
+            </p>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setProjectToDelete(null)}
+                disabled={deleting}
+                className="flex-1 py-2 bg-slate-800 hover:bg-slate-750 text-slate-300 text-xs font-bold rounded-lg transition border border-slate-750"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteProject}
+                disabled={deleting}
+                className="flex-1 py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5"
+              >
+                {deleting ? (
+                  <>
+                    <span className="animate-spin text-xs">🔄</span>
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete Project</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
