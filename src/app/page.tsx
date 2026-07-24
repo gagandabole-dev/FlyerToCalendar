@@ -23,6 +23,7 @@ export default function Home() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [flyerDateContext, setFlyerDateContext] = useState("");
+  const [fileDates, setFileDates] = useState<string[]>([]);
   const [showDatePickerModal, setShowDatePickerModal] = useState(false);
   const [tempDate, setTempDate] = useState("");
   const [tempExtractedEvents, setTempExtractedEvents] = useState<CalendarEvent[]>([]);
@@ -197,6 +198,14 @@ END:VEVENT
       };
       reader.readAsDataURL(file);
     });
+
+    setFileDates((prev) => {
+      const next = [...prev];
+      while (next.length < newFiles.length) {
+        next.push("");
+      }
+      return next.slice(0, maxFiles);
+    });
   };
 
   const removeFile = (index: number) => {
@@ -204,6 +213,7 @@ END:VEVENT
     const updatedPreviews = previews.filter((_, i) => i !== index);
     setFiles(updatedFiles);
     setPreviews(updatedPreviews);
+    setFileDates((prev) => prev.filter((_, i) => i !== index));
     setErrorMessage(null);
   };
 
@@ -214,18 +224,21 @@ END:VEVENT
     setEvents([]);
     setErrorMessage(null);
  
-    const activeDate = forcedDate !== undefined ? forcedDate : flyerDateContext;
+    const activeDate = forcedDate !== undefined ? forcedDate : "";
  
     try {
       const allExtractedEvents: CalendarEvent[] = [];
       let successCount = 0;
  
-      for (const file of files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileDate = fileDates[i] || activeDate;
+
         const formData = new FormData();
         formData.append("file", file);
         formData.append("timezone", Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Berlin");
-        if (activeDate) {
-          formData.append("baseDate", activeDate);
+        if (fileDate) {
+          formData.append("baseDate", fileDate);
         }
  
         const res = await fetch("/api/parse", {
@@ -237,7 +250,15 @@ END:VEVENT
         const extracted = Array.isArray(data) ? data : data.events;
  
         if (res.ok && extracted) {
-          allExtractedEvents.push(...extracted);
+          const formatted = extracted.map((evt: any) => ({
+            title: evt.title || "Untitled Event",
+            artist: evt.artist || "",
+            date: fileDate || evt.date || new Date().toISOString().split("T")[0],
+            startTime: evt.startTime || evt.start_time || "12:00",
+            endTime: evt.endTime || evt.end_time || "13:00",
+            room: evt.room || evt.location || "Main Stage",
+          }));
+          allExtractedEvents.push(...formatted);
           successCount++;
         } else {
           setErrorMessage(data.error || "Gemini AI API rate limit reached. Please wait a few seconds and try again.");
@@ -246,24 +267,15 @@ END:VEVENT
       }
  
       if (successCount === files.length) {
-        const formattedEvents = allExtractedEvents.map((evt) => ({
-          title: evt.title || "Untitled Event",
-          artist: evt.artist || "",
-          date: activeDate || evt.date || new Date().toISOString().split("T")[0],
-          startTime: evt.startTime || evt.start_time || "12:00",
-          endTime: evt.endTime || evt.end_time || "13:00",
-          room: evt.room || evt.location || "Main Stage",
-        }));
- 
-        const hasMissingDate = formattedEvents.some((e) => e.date === "date_missing");
+        const hasMissingDate = allExtractedEvents.some((e) => e.date === "date_missing");
         if (hasMissingDate) {
-          setTempExtractedEvents(formattedEvents);
+          setTempExtractedEvents(allExtractedEvents);
           setTempDate("");
           setShowDatePickerModal(true);
         } else {
-          setEvents(formattedEvents);
+          setEvents(allExtractedEvents);
           if (userMode === "organizer") {
-            createAnonymousProject("Public Flyer Schedule", formattedEvents);
+            createAnonymousProject("Public Flyer Schedule", allExtractedEvents);
           }
         }
       }
@@ -569,40 +581,45 @@ END:VEVENT
 
             {/* Preview List */}
             {previews.length > 0 && (
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+              <div className="space-y-2.5 text-left">
                 {previews.map((preview, idx) => (
-                  <div key={idx} className="relative bg-slate-950/60 border border-slate-850 p-3 rounded-xl flex items-center gap-3">
-                    <img src={preview} alt={`Flyer Preview ${idx + 1}`} className="w-14 h-14 object-cover rounded-lg border border-slate-800" />
-                    <div className="flex-1 text-left min-w-0">
-                      <p className="text-xs font-bold text-slate-300 truncate">Flyer_Graphic_{idx + 1}.png</p>
-                      <p className="text-[10px] text-slate-500">Ready to parse</p>
+                  <div key={idx} className="relative bg-slate-950/60 border border-slate-850 p-4 rounded-xl flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                      <img src={preview} alt={`Flyer Preview ${idx + 1}`} className="w-12 h-12 object-cover rounded-lg border border-slate-800" />
+                      <div className="flex-1 text-left min-w-0">
+                        <p className="text-xs font-bold text-slate-300 truncate">{files[idx]?.name || `Flyer_Graphic_${idx + 1}.png`}</p>
+                        <p className="text-[10px] text-slate-500">Ready to parse</p>
+                      </div>
+                      <button
+                        onClick={() => removeFile(idx)}
+                        className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors text-xs"
+                      >
+                        ✕
+                      </button>
                     </div>
-                    <button
-                      onClick={() => removeFile(idx)}
-                      className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors text-sm"
-                    >
-                      ✕
-                    </button>
+
+                    <div className="border-t border-slate-850/40 pt-2.5 flex flex-col gap-1.5">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">Flyer Date Context:</label>
+                        <input
+                          type="date"
+                          value={fileDates[idx] || ""}
+                          onChange={(e) => {
+                            const newDates = [...fileDates];
+                            newDates[idx] = e.target.value;
+                            setFileDates(newDates);
+                          }}
+                          className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 transition-colors w-full sm:w-auto"
+                        />
+                      </div>
+                      <p className="text-[9px] text-slate-500 leading-normal">
+                        Provide date if flyer has no date (e.g. shows weekdays like "Saturday" or days like "Day 1").
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
             )}
-
-            {/* Optional Date Context Picker */}
-            <div className="text-left space-y-1.5 pt-2">
-              <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block">
-                Flyer Date Context (Optional)
-              </label>
-              <input
-                type="date"
-                value={flyerDateContext}
-                onChange={(e) => setFlyerDateContext(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-350 focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-              <p className="text-[9px] text-slate-505 leading-normal">
-                If the flyer only shows weekdays (e.g. "Saturday") or days (e.g. "Day 1"), select a date here to help the AI map it.
-              </p>
-            </div>
 
             {/* Error / Notice notifications */}
             {errorMessage && (

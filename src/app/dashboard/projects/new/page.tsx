@@ -337,58 +337,45 @@ export default function NewProject() {
 
               {/* Previews */}
               {previews.length > 0 && (
-                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-[400px] overflow-y-auto pr-1">
                   {previews.map((preview, idx) => (
-                    <div key={idx} className="relative bg-slate-950/60 border border-slate-850 p-2.5 rounded-xl flex flex-col sm:flex-row sm:items-center gap-3">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div key={idx} className="relative bg-slate-950/60 border border-slate-850 p-4 rounded-xl flex flex-col gap-3 text-left">
+                      <div className="flex items-center gap-3">
                         <img src={preview} alt={`Flyer Preview ${idx + 1}`} className="w-12 h-12 object-cover rounded-lg border border-slate-800" />
                         <div className="flex-1 text-left min-w-0">
                           <p className="text-xs font-bold text-slate-300 truncate">{files[idx]?.name || `Flyer_Graphic_${idx + 1}.png`}</p>
                           <p className="text-[10px] text-slate-500">Ready to parse</p>
                         </div>
+                        <button
+                          onClick={() => removeFile(idx)}
+                          className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors text-xs"
+                        >
+                          ✕
+                        </button>
                       </div>
 
-                      {/* Optional Date Context input for each specific flyer */}
-                      <div className="flex items-center gap-2">
-                        <label className="text-[9px] font-bold text-slate-500 uppercase whitespace-nowrap">Date Context:</label>
-                        <input
-                          type="date"
-                          value={fileDates[idx] || ""}
-                          onChange={(e) => {
-                            const newDates = [...fileDates];
-                            newDates[idx] = e.target.value;
-                            setFileDates(newDates);
-                          }}
-                          className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 transition-colors"
-                        />
+                      <div className="border-t border-slate-850/40 pt-2.5 flex flex-col gap-1.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">Flyer Date Context:</label>
+                          <input
+                            type="date"
+                            value={fileDates[idx] || ""}
+                            onChange={(e) => {
+                              const newDates = [...fileDates];
+                              newDates[idx] = e.target.value;
+                              setFileDates(newDates);
+                            }}
+                            className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 transition-colors w-full sm:w-auto"
+                          />
+                        </div>
+                        <p className="text-[9px] text-slate-500 leading-normal">
+                          Provide date if flyer has no date (e.g. shows weekdays like "Saturday" or days like "Day 1").
+                        </p>
                       </div>
-
-                      <button
-                        onClick={() => removeFile(idx)}
-                        className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors text-xs"
-                      >
-                        ✕
-                      </button>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
-
-            {/* Optional Date Context Picker */}
-            <div className="text-left space-y-1.5 pt-2">
-              <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block">
-                Default Date Context (Optional Fallback)
-              </label>
-              <input
-                type="date"
-                value={flyerDateContext}
-                onChange={(e) => setFlyerDateContext(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-350 focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-              <p className="text-[9px] text-slate-505 leading-normal">
-                Fallback date used for any flyer that does not have an individual Date Context specified above.
-              </p>
             </div>
 
             {/* Messages */}
