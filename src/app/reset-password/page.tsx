@@ -58,10 +58,11 @@ export default function ResetPassword() {
     <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-4 md:p-8 selection:bg-indigo-500 selection:text-white">
       <div className="max-w-md w-full text-center space-y-8">
         
-        <div className="space-y-3">
-          <Link href="/login" className="text-xs font-semibold text-slate-500 hover:text-slate-350 transition">
+        <div className="space-y-3 flex flex-col items-center">
+          <Link href="/login" className="text-xs font-semibold text-slate-500 hover:text-slate-350 transition mb-2 block">
             ← Back to Login
           </Link>
+          <img src="/logo.svg" className="w-12 h-12 rounded-xl shadow-md border border-slate-800 mb-1 animate-fade-in" alt="FlyerToCalendar Logo" />
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
             Reset Password
           </h1>
