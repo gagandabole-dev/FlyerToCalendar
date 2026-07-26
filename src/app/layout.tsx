@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "Convert event flyer timetables into structured calendar events instantly.",
   icons: {
     icon: "/logo.svg",
-    apple: "/logo.svg",
+    apple: "/apple-icon.png",
   },
   manifest: "/manifest.json",
 };

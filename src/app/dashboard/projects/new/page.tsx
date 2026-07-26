@@ -27,9 +27,7 @@ export default function NewProject() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [flyerDateContext, setFlyerDateContext] = useState("");
   const [fileDates, setFileDates] = useState<string[]>([]);
-  const [showDatePickerModal, setShowDatePickerModal] = useState(false);
-  const [tempDate, setTempDate] = useState("");
-  const [tempExtractedEvents, setTempExtractedEvents] = useState<CalendarEvent[]>([]);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -159,9 +157,8 @@ export default function NewProject() {
       if (successCount === files.length) {
         const hasMissingDate = allExtractedEvents.some((e) => e.date === "date_missing");
         if (hasMissingDate) {
-          setTempExtractedEvents(allExtractedEvents);
-          setTempDate("");
-          setShowDatePickerModal(true);
+          setErrorMessage("Please specify a 'Flyer Date Context' date for each flyer, as no dates could be automatically parsed from the flyer graphics.");
+          setEvents([]); // Clear parsed events
         } else {
           setEvents(allExtractedEvents);
         }
@@ -341,7 +338,13 @@ export default function NewProject() {
                   {previews.map((preview, idx) => (
                     <div key={idx} className="relative bg-slate-950/60 border border-slate-850 p-4 rounded-xl flex flex-col gap-3 text-left">
                       <div className="flex items-center gap-3">
-                        <img src={preview} alt={`Flyer Preview ${idx + 1}`} className="w-12 h-12 object-cover rounded-lg border border-slate-800" />
+                        <img 
+                          src={preview} 
+                          alt={`Flyer Preview ${idx + 1}`} 
+                          className="w-12 h-12 object-cover rounded-lg border border-slate-800 cursor-zoom-in hover:scale-105 transition-transform" 
+                          onClick={() => setPreviewImage(preview)}
+                          title="Click to enlarge flyer preview"
+                        />
                         <div className="flex-1 text-left min-w-0">
                           <p className="text-xs font-bold text-slate-300 truncate">{files[idx]?.name || `Flyer_Graphic_${idx + 1}.png`}</p>
                           <p className="text-[10px] text-slate-500">Ready to parse</p>
@@ -535,71 +538,22 @@ export default function NewProject() {
         </div>
       </div>
 
-      {/* Date Context Request Modal */}
-      {showDatePickerModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-center space-y-6">
-            <button
-              onClick={() => setShowDatePickerModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 text-xl font-bold p-1 rounded-lg hover:bg-slate-800 transition-colors"
-              aria-label="Close modal"
+      {/* Enlarged Flyer Preview Modal */}
+      {previewImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm animate-fade-in" onClick={() => setPreviewImage(null)}>
+          <div className="relative max-w-4xl w-full max-h-[85vh] flex items-center justify-center">
+            <button 
+              onClick={() => setPreviewImage(null)} 
+              className="absolute top-[-40px] right-0 text-white bg-slate-900/80 border border-slate-800 hover:text-rose-400 p-2.5 rounded-full transition-all text-xs font-bold shadow-md"
             >
-              ✕
+              ✕ Close Preview
             </button>
- 
-            <div className="space-y-2">
-              <span className="text-4xl block">📅</span>
-              <h3 className="text-lg font-bold text-white">Event Date Request</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                This flyer graphic does not list calendar dates explicitly. Select a date to automatically assign it to the extracted events.
-              </p>
-            </div>
- 
-            <div className="text-left space-y-1.5">
-              <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block">Event Date</label>
-              <input
-                type="date"
-                value={tempDate}
-                onChange={(e) => setTempDate(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-200 text-sm focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-            </div>
- 
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  if (tempDate) {
-                    const finalEvents = tempExtractedEvents.map(e => ({
-                      ...e,
-                      date: e.date === "date_missing" ? tempDate : e.date
-                    }));
-                    setEvents(finalEvents);
-                    setFlyerDateContext(tempDate);
-                    setShowDatePickerModal(false);
-                  } else {
-                    alert("Please select a date, or click 'Skip' to set today's date.");
-                  }
-                }}
-                disabled={!tempDate}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl text-xs font-bold transition shadow-md shadow-indigo-600/20"
-              >
-                Apply Date
-              </button>
-              <button
-                onClick={() => {
-                  const todayStr = new Date().toISOString().split("T")[0];
-                  const finalEvents = tempExtractedEvents.map(e => ({
-                    ...e,
-                    date: e.date === "date_missing" ? todayStr : e.date
-                  }));
-                  setEvents(finalEvents);
-                  setShowDatePickerModal(false);
-                }}
-                className="w-full py-2.5 bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-750 rounded-xl text-xs font-bold transition"
-              >
-                Skip
-              </button>
-            </div>
+            <img 
+              src={previewImage} 
+              className="max-w-full max-h-[80vh] object-contain rounded-xl border border-slate-800 shadow-2xl" 
+              alt="Enlarged Flyer Preview" 
+              onClick={(e) => e.stopPropagation()} 
+            />
           </div>
         </div>
       )}
