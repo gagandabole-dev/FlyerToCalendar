@@ -274,9 +274,7 @@ END:VEVENT
           setShowDatePickerModal(true);
         } else {
           setEvents(allExtractedEvents);
-          if (userMode === "organizer") {
-            createAnonymousProject("Public Flyer Schedule", allExtractedEvents);
-          }
+          createAnonymousProject("Public Flyer Schedule", allExtractedEvents);
         }
       }
     } catch (err) {
@@ -331,6 +329,11 @@ END:VEVENT
   // Calendar Exports
   const triggerIcsDownload = (calendarName?: string) => {
     if (events.length === 0) return;
+
+    if (anonProjectId) {
+      window.location.href = `/api/feed/${anonProjectId}/calendar.ics`;
+      return;
+    }
 
     let icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -475,7 +478,8 @@ END:VEVENT
       <div className="max-w-4xl w-full text-center space-y-8 mt-4 md:mt-8">
         
         {/* Top Header */}
-        <div className="space-y-4">
+        <div className="space-y-4 flex flex-col items-center">
+          <img src="/logo.svg" className="w-16 h-16 rounded-2xl shadow-lg border border-slate-800 mb-2 animate-fade-in" alt="FlyerToCalendar Logo" />
           <span className="px-3.5 py-1 bg-gradient-to-r from-indigo-500/10 to-violet-500/10 text-indigo-400 rounded-full text-xs font-semibold uppercase tracking-wider border border-indigo-500/20 shadow-sm">
             AI Event Extraction Platform 2.0
           </span>
@@ -968,9 +972,7 @@ END:VEVENT
                     setEvents(finalEvents);
                     setFlyerDateContext(tempDate);
                     setShowDatePickerModal(false);
-                    if (userMode === "organizer") {
-                      createAnonymousProject("Public Flyer Schedule", finalEvents);
-                    }
+                    createAnonymousProject("Public Flyer Schedule", finalEvents);
                   } else {
                     alert("Please select a date, or click 'Skip' to set today's date.");
                   }
@@ -989,9 +991,7 @@ END:VEVENT
                   }));
                   setEvents(finalEvents);
                   setShowDatePickerModal(false);
-                  if (userMode === "organizer") {
-                    createAnonymousProject("Public Flyer Schedule", finalEvents);
-                  }
+                  createAnonymousProject("Public Flyer Schedule", finalEvents);
                 }}
                 className="w-full py-2.5 bg-slate-850 hover:bg-slate-800 text-slate-200 border border-slate-750 rounded-xl text-xs font-bold transition"
               >

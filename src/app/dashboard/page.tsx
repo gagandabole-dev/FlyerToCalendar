@@ -159,13 +159,16 @@ export default function Dashboard() {
         
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-900 pb-6">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-              Organizer Panel
-            </h1>
-            <p className="text-slate-400 text-xs mt-1">
-              Logged in as <span className="font-semibold text-slate-200">{user?.email}</span>
-            </p>
+          <div className="flex items-center gap-3">
+            <img src="/logo.svg" className="w-10 h-10 rounded-lg border border-slate-800 shadow-sm" alt="FlyerToCalendar Logo" />
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
+                Organizer Panel
+              </h1>
+              <p className="text-slate-400 text-xs mt-1">
+                Logged in as <span className="font-semibold text-slate-200">{user?.email}</span>
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             {isAdmin && (

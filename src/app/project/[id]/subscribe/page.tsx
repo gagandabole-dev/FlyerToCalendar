@@ -58,75 +58,7 @@ export default function SubscribeLandingPage({ params }: { params: Promise<{ id:
   const isPreview = project.status !== "paid" && project.status !== "bypass";
 
   const handleIcsDownload = () => {
-    let icsContent = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//FlyerToCalendar//NONSGML v1.0//EN
-BEGIN:VTIMEZONE
-TZID:Europe/Berlin
-X-LIC-LOCATION:Europe/Berlin
-BEGIN:DAYLIGHT
-TZOFFSETFROM:+0100
-TZOFFSETTO:+0200
-TZNAME:CEST
-DTSTART:19700329T020000
-RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
-END:DAYLIGHT
-BEGIN:STANDARD
-TZOFFSETFROM:+0200
-TZOFFSETTO:+0100
-TZNAME:CET
-DTSTART:19701025T030000
-RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
-END:STANDARD
-END:VTIMEZONE
-`;
-
-    const eventsToExport = isPreview ? schedules.slice(0, 5) : schedules;
-
-    eventsToExport.forEach((item: any) => {
-      const sTimeStr = item.start_time;
-      const eTimeStr = item.end_time;
-      
-      let sDate = new Date(sTimeStr);
-      let eDate = new Date(eTimeStr);
-
-      // Fallback for invalid dates
-      if (isNaN(sDate.getTime())) sDate = new Date();
-      if (isNaN(eDate.getTime())) eDate = new Date(sDate.getTime() + 3600000);
-
-      // Fix overnight events going past midnight
-      if (eDate <= sDate) {
-        eDate.setDate(eDate.getDate() + 1);
-      }
-
-      const pad = (num: number) => String(num).padStart(2, "0");
-      const cleanStartDate = `${sDate.getFullYear()}${pad(sDate.getMonth() + 1)}${pad(sDate.getDate())}`;
-      const startClean = `${pad(sDate.getHours())}${pad(sDate.getMinutes())}00`;
-      const cleanEndDate = `${eDate.getFullYear()}${pad(eDate.getMonth() + 1)}${pad(eDate.getDate())}`;
-      const endClean = `${pad(eDate.getHours())}${pad(eDate.getMinutes())}00`;
-
-      const uid = item.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@flyertocalendar.app`;
-      
-      icsContent += `BEGIN:VEVENT
-UID:${uid}
-SUMMARY:${item.title}${item.artist ? ` - ${item.artist}` : ""}
-DTSTART;TZID=Europe/Berlin:${cleanStartDate}T${startClean}
-DTEND;TZID=Europe/Berlin:${cleanEndDate}T${endClean}
-LOCATION:${item.room || ""}
-END:VEVENT
-`;
-    });
-
-    icsContent += "END:VCALENDAR";
-    icsContent = icsContent.replace(/\r?\n/g, "\r\n");
-
-    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${eventName.toLowerCase().replace(/\s+/g, "-")}-schedule.ics`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.location.href = `/api/feed/${id}/calendar.ics`;
   };
 
   return (

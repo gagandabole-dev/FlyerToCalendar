@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "FlyerToCalendar",
   description: "Convert event flyer timetables into structured calendar events instantly.",
+  icons: {
+    icon: "/logo.svg",
+    apple: "/logo.svg",
+  },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

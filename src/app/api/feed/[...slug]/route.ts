@@ -79,6 +79,7 @@ END:VTIMEZONE`;
         status: 200,
         headers: {
           "Content-Type": "text/calendar; charset=utf-8",
+          "Content-Disposition": 'attachment; filename="mock-schedule.ics"',
           "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
           "Pragma": "no-cache",
           "Expires": "0",
@@ -191,11 +192,14 @@ END:VTIMEZONE`;
     // Ensure all line endings are exactly CRLF (\r\n) as required by RFC-5545
     icsContent = icsContent.replace(/\r?\n/g, "\r\n");
 
+    const safeFilename = `${project.event_name.toLowerCase().replace(/[^a-z0-9]/g, "-")}-schedule.ics`;
+
     // Return RFC-5545 compliant calendar feed with specific response headers
     return new Response(icsContent, {
       status: 200,
       headers: {
         "Content-Type": "text/calendar; charset=utf-8",
+        "Content-Disposition": `attachment; filename="${safeFilename}"`,
         "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
         "Pragma": "no-cache",
         "Expires": "0",
