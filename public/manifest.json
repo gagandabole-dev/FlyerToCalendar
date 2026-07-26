@@ -1,0 +1,17 @@
+{
+  "name": "FlyerToCalendar",
+  "short_name": "Flyer2Cal",
+  "description": "Convert festival flyers into live auto-updating phone calendar feeds.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#6366F1",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

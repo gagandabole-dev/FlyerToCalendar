@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" width="100%" height="100%">
+  <defs>
+    <linearGradient id="flyerFold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#6366F1" />
+    </linearGradient>
+    <linearGradient id="calendarGrid" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#0F172A" />
+  <rect x="96" y="128" width="320" height="288" rx="32" fill="#1E293B" stroke="#334155" stroke-width="8" />
+  <path d="M96 160 C96 142.327 110.327 128 128 128 H384 C401.673 128 416 142.327 416 160 V192 H96 V160 Z" fill="url(#flyerFold)" />
+  <rect x="160" y="96" width="24" height="48" rx="12" fill="#F8FAFC" />
+  <rect x="328" y="96" width="24" height="48" rx="12" fill="#F8FAFC" />
+  <path d="M160 256 H280 L352 328 V360 C352 368.837 344.837 376 336 376 H160 C151.163 376 144 368.837 144 360 V272 C144 263.163 151.163 256 160 256 Z" fill="#334155" />
+  <rect x="176" y="276" width="80" height="80" rx="20" fill="url(#calendarGrid)" />
+  <path d="M200 316 L212 328 L236 304" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M280 256 L352 328 H296 C287.163 328 280 320.837 280 312 V256 Z" fill="#818CF8" />
+</svg>
