@@ -14,6 +14,124 @@ interface CalendarEvent {
   room: string;
 }
 
+const proSlides = [
+  {
+    title: "Custom Branded QR Cards",
+    description: "Generate beautiful, shareable QR flyers. When attendees scan it, the system instantly downloads or subscribes them to your live festival lineup feed.",
+    icon: "🖼️",
+    visual: (
+      <div className="bg-slate-950/80 border border-slate-850 rounded-2xl p-4 flex justify-center shadow-inner relative max-w-[280px] mx-auto scale-90">
+        <svg width="180" height="240" viewBox="0 0 260 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="260" height="360" rx="16" fill="#0f172a"/>
+          <rect x="20" y="20" width="220" height="52" rx="10" fill="#1e293b" />
+          <text x="130" y="44" fill="#ffffff" fontFamily="sans-serif" fontSize="13" fontWeight="bold" textAnchor="middle">Saturday Schedule</text>
+          <text x="130" y="60" fill="#94a3b8" fontFamily="sans-serif" fontSize="9" textAnchor="middle">Event Schedule</text>
+          <text x="130" y="90" fill="#64748b" fontFamily="sans-serif" fontSize="8" textAnchor="middle">Scan to add schedule to calendar</text>
+          <rect x="55" y="106" width="150" height="150" rx="8" fill="#ffffff" />
+          <rect x="67" y="118" width="126" height="126" fill="#e2e8f0" rx="4" />
+          <rect x="75" y="126" width="30" height="30" fill="#0f172a" />
+          <rect x="80" y="131" width="20" height="20" fill="#ffffff" />
+          <rect x="85" y="136" width="10" height="10" fill="#0f172a" />
+          <rect x="153" y="126" width="30" height="30" fill="#0f172a" />
+          <rect x="158" y="131" width="20" height="20" fill="#ffffff" />
+          <rect x="163" y="136" width="10" height="10" fill="#0f172a" />
+          <rect x="75" y="204" width="30" height="30" fill="#0f172a" />
+          <rect x="80" y="209" width="20" height="20" fill="#ffffff" />
+          <rect x="85" y="214" width="10" height="10" fill="#0f172a" />
+          <rect x="120" y="130" width="10" height="20" fill="#0f172a" />
+          <rect x="140" y="145" width="10" height="10" fill="#0f172a" />
+          <rect x="110" y="170" width="30" height="10" fill="#0f172a" />
+          <rect x="150" y="180" width="20" height="30" fill="#0f172a" />
+          <text x="130" y="302" fill="#818cf8" fontFamily="sans-serif" fontSize="11" fontWeight="bold" textAnchor="middle">⚡ FlyerToCalendar</text>
+        </svg>
+      </div>
+    )
+  },
+  {
+    title: "Manage Multiple Event Projects",
+    description: "Create distinct projects for each festival, tour, or nightclub event. Organize multiple days (Friday, Saturday, Sunday) concurrently.",
+    icon: "📁",
+    visual: (
+      <div className="space-y-2.5 max-w-[280px] mx-auto text-left py-4">
+        <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-xl flex items-center justify-between gap-2 shadow-md">
+          <div>
+            <p className="text-xs font-bold text-white">Palais Bachata Fest</p>
+            <p className="text-[9px] text-slate-500">3 Flyer schedules • Active</p>
+          </div>
+          <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-[8px] font-bold uppercase tracking-wider">Paid Pass</span>
+        </div>
+        <div className="bg-slate-950 border border-slate-850 p-3.5 rounded-xl flex items-center justify-between gap-2 opacity-80 shadow-md">
+          <div>
+            <p className="text-xs font-bold text-slate-300">Summer Salsa Gala</p>
+            <p className="text-[9px] text-slate-500">1 Flyer schedule • Draft</p>
+          </div>
+          <span className="px-2 py-0.5 bg-slate-800 border border-slate-750 text-slate-400 rounded-full text-[8px] font-bold uppercase tracking-wider">Draft</span>
+        </div>
+        <div className="bg-slate-950 border border-slate-850 p-3.5 rounded-xl flex items-center justify-between gap-2 opacity-60 shadow-md">
+          <div>
+            <p className="text-xs font-bold text-slate-355">Techno Night 2026</p>
+            <p className="text-[9px] text-slate-500">2 Flyer schedules • Active</p>
+          </div>
+          <span className="px-2 py-0.5 bg-sky-500/10 border border-sky-550/30 text-sky-400 rounded-full text-[8px] font-bold uppercase tracking-wider">Bypass</span>
+        </div>
+      </div>
+    )
+  },
+  {
+    title: "Real-Time Updates & Lineup Edits",
+    description: "Lineup changes at the last minute? Edit rooms, stages, time slots, or artists directly on your dashboard. Your attendees' calendars will auto-sync instantly.",
+    icon: "🔄",
+    visual: (
+      <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl max-w-[280px] mx-auto text-left space-y-3 shadow-md scale-95">
+        <div className="flex justify-between items-center pb-2 border-b border-slate-850">
+          <span className="text-[10px] font-bold text-indigo-400">EDIT EVENT SESSION</span>
+          <span className="text-[8px] text-slate-500 font-medium">Saves instantly</span>
+        </div>
+        <div className="space-y-2">
+          <div>
+            <label className="text-[8px] font-bold text-slate-500 uppercase block mb-0.5">Session Title</label>
+            <div className="w-full bg-slate-900 border border-slate-850 rounded px-2 py-1.5 text-[9px] text-slate-200">Bachata Lady Styling Masterclass</div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[8px] font-bold text-slate-500 uppercase block mb-0.5">Start Time</label>
+              <div className="w-full bg-indigo-950/40 border border-indigo-900/30 rounded px-2 py-1.5 text-[9px] text-indigo-300 font-bold">14:30</div>
+            </div>
+            <div>
+              <label className="text-[8px] font-bold text-slate-500 uppercase block mb-0.5">Stage / Room</label>
+              <div className="w-full bg-slate-900 border border-slate-850 rounded px-2 py-1.5 text-[9px] text-slate-355">Belvedere Room</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  },
+  {
+    title: "Batch Upload up to 10 Flyers",
+    description: "Upload separate flyer graphic files for Friday, Saturday, Sunday, or individual workshop schedules all at once. AI merges them into a clean unified feed.",
+    icon: "📚",
+    visual: (
+      <div className="grid grid-cols-3 gap-2.5 max-w-[280px] mx-auto py-6">
+        <div className="bg-slate-950 border border-slate-800 p-2 rounded-xl text-center shadow-md relative">
+          <div className="w-full aspect-[3/4] bg-slate-900 rounded-lg border border-slate-850 flex items-center justify-center text-xs">📄</div>
+          <p className="text-[7px] font-bold text-slate-300 mt-1.5 truncate">friday_roster.jpg</p>
+          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-slate-950"></span>
+        </div>
+        <div className="bg-slate-950 border border-slate-800 p-2 rounded-xl text-center shadow-md relative">
+          <div className="w-full aspect-[3/4] bg-slate-900 rounded-lg border border-slate-850 flex items-center justify-center text-xs">📄</div>
+          <p className="text-[7px] font-bold text-slate-300 mt-1.5 truncate">saturday_roster.jpg</p>
+          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-slate-950"></span>
+        </div>
+        <div className="bg-slate-950 border border-slate-800 p-2 rounded-xl text-center shadow-md relative">
+          <div className="w-full aspect-[3/4] bg-slate-900 rounded-lg border border-slate-850 flex items-center justify-center text-xs">📄</div>
+          <p className="text-[7px] font-bold text-slate-300 mt-1.5 truncate">sunday_roster.jpg</p>
+          <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-slate-950"></span>
+        </div>
+      </div>
+    )
+  }
+];
+
 export default function Home() {
   const [userMode, setUserMode] = useState<"user" | "organizer">("user");
   const [files, setFiles] = useState<File[]>([]);
@@ -28,6 +146,7 @@ export default function Home() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [anonProjectId, setAnonProjectId] = useState<string | null>(null);
   const [anonCreating, setAnonCreating] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
   
   // Organizer waitlist
   const [email, setEmail] = useState("");
@@ -490,8 +609,8 @@ END:VEVENT
         </div>
 
         {/* User Mode Selector Toggle Switch */}
-        <div className="flex justify-center">
-          <div className="bg-slate-900/80 p-1 rounded-xl border border-slate-800 flex items-center relative shadow-inner">
+        <div className="flex flex-col items-center gap-3">
+          <div className="bg-slate-900/80 p-1 rounded-xl border border-slate-850 flex items-center relative shadow-inner">
             <button
               onClick={() => handleModeChange("user")}
               className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all duration-250 flex items-center gap-2 ${
@@ -499,8 +618,9 @@ END:VEVENT
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
                   : "text-slate-400 hover:text-slate-200"
               }`}
+              title="Convert single flyer graphic to calendar file instantly without sign up"
             >
-              <span>👤</span> Normal User
+              <span>👤</span> Free Version
             </button>
             <button
               onClick={() => handleModeChange("organizer")}
@@ -509,279 +629,248 @@ END:VEVENT
                   ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
                   : "text-slate-400 hover:text-slate-200"
               }`}
+              title="Ideal for organizers. Upload up to 10 flyers, edit sessions, generate scannable branded QR cards, and manage multiple projects."
             >
-              <span>⚡</span> Organizer Pro
+              <span>⚡</span> Pro Version
             </button>
           </div>
+          <p className="text-[11.5px] text-slate-500 max-w-md leading-normal text-center">
+            {userMode === "user" 
+              ? "Free: Convert single flyer graphic to calendar file instantly without sign up."
+              : "Pro: Ideal for organizers. Upload up to 10 flyers, edit schedules, and generate scannable QR cards."
+            }
+          </p>
         </div>
 
-        {/* Organizer Portal Entry Banner */}
-        {userMode === "organizer" && (
-          <div className="p-4 bg-slate-900/40 border border-slate-850 rounded-2xl max-w-xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-left backdrop-blur-md">
-            <div className="space-y-0.5">
-              <p className="text-sm font-extrabold text-white flex items-center gap-1.5">
-                <span>🔑</span> Unlock Pro Features
-              </p>
-              <p className="text-xs text-slate-400">
-                Without signing in, you can only upload 1 image. **Sign in / Sign up** to upload up to 10 images and download your shareable QR card!
-              </p>
-            </div>
-            <Link
-              href="/login"
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg text-white transition shadow-md shadow-indigo-600/20 shrink-0"
-            >
-              Sign In / Sign Up
-            </Link>
-          </div>
-        )}
-
-        {/* Primary Interactive Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Left Column: Dropzone uploads */}
-          <div className="lg:col-span-5 bg-slate-900/60 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md">
-            <h2 className="text-lg font-bold text-white text-left flex items-center gap-2">
-              <span>{userMode === "user" ? "📸" : "📚"}</span>
-              {userMode === "user" ? "Upload Flyer Graphic" : "Upload Flyer Graphic (1 Image Limit)"}
-            </h2>
-
-            {/* Dropzone area */}
-            {previews.length < 1 ? (
-              <label className="border-2 border-dashed border-slate-800 hover:border-indigo-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/40 min-h-[220px] group">
-                <div className="space-y-3 text-center">
-                  <div className="w-12 h-12 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center mx-auto group-hover:scale-105 transition-transform">
-                    <span>➕</span>
-                  </div>
-                  <p className="text-sm text-slate-300 font-medium">Click to select image file</p>
-                  <p className="text-xs text-slate-500">Supports PNG, JPG, or WEBP (1 Image Limit)</p>
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  multiple={false}
-                  className="hidden"
-                  ref={fileInputRef}
-                />
-              </label>
-            ) : null}
-
-            {/* Preview List */}
-            {previews.length > 0 && (
-              <div className="space-y-2.5 text-left">
-                {previews.map((preview, idx) => (
-                  <div key={idx} className="relative bg-slate-950/60 border border-slate-850 p-4 rounded-xl flex flex-col gap-3">
-                    <div className="flex items-center gap-3">
-                      <img 
-                        src={preview} 
-                        alt={`Flyer Preview ${idx + 1}`} 
-                        className="w-12 h-12 object-cover rounded-lg border border-slate-800 cursor-zoom-in hover:scale-105 transition-transform" 
-                        onClick={() => setPreviewImage(preview)}
-                        title="Click to enlarge flyer preview"
-                      />
-                      <div className="flex-1 text-left min-w-0">
-                        <p className="text-xs font-bold text-slate-300 truncate">{files[idx]?.name || `Flyer_Graphic_${idx + 1}.png`}</p>
-                        <p className="text-[10px] text-slate-500">Ready to parse</p>
-                      </div>
-                      <button
-                        onClick={() => removeFile(idx)}
-                        className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors text-xs"
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    <div className="border-t border-slate-850/40 pt-2.5 flex flex-col gap-1.5">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">Flyer Date Context:</label>
-                        <input
-                          type="date"
-                          value={fileDates[idx] || ""}
-                          onChange={(e) => {
-                            const newDates = [...fileDates];
-                            newDates[idx] = e.target.value;
-                            setFileDates(newDates);
-                          }}
-                          className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 transition-colors w-full sm:w-auto"
-                        />
-                      </div>
-                      <p className="text-[9px] text-slate-500 leading-normal">
-                        Provide date if flyer has no date (e.g. shows weekdays like "Saturday" or days like "Day 1").
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Error / Notice notifications */}
-            {errorMessage && (
-              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-sm text-left flex items-start gap-3">
-                <span className="text-lg">⏳</span>
-                <div>
-                  <p className="font-semibold">Notice</p>
-                  <p className="text-xs text-amber-200/80 mt-0.5">{errorMessage}</p>
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={() => handleUpload()}
-              disabled={files.length === 0 || loading || cooldown > 0}
-              className="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <span className="animate-spin text-sm">🔄</span>
-                  <span>Extracting Event Matrix...</span>
-                </>
-              ) : cooldown > 0 ? (
-                <span>Please wait ({cooldown}s)...</span>
-              ) : (
-                <span>Convert to Calendar Events</span>
-              )}
-            </button>
-          </div>
-
-          {/* Right Column: Editable review list */}
-          <div className="lg:col-span-7 bg-slate-900/60 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md flex flex-col min-h-[420px]">
+        {/* Primary Interactive Grid or Pro Features Carousel */}
+        {userMode === "user" ? (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start w-full">
             
-            {/* Header and top buttons */}
-            <div className="flex flex-col border-b border-slate-800/85 pb-4 shrink-0 space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span>🗓️</span>
-                  Review Extracted Events
-                </h2>
-                {events.length > 0 && userMode === "user" && (
-                  <button
-                    onClick={() => triggerIcsDownload("flyer")}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg text-white transition shadow-md flex items-center gap-1.5"
-                  >
-                    📅 Export to Calendar (.ics)
-                  </button>
-                )}
-              </div>
- 
-              {/* Organizer Actions moved directly below header */}
-              {events.length > 0 && userMode === "organizer" && (
-                <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  <button
-                    onClick={() => triggerIcsDownload("flyer")}
-                    className="flex-1 py-2.5 px-4 rounded-xl font-bold bg-slate-850 hover:bg-slate-800 text-slate-200 hover:text-white transition border border-slate-750 flex items-center justify-center gap-2 text-xs shadow-md"
-                  >
-                    💾 Download .ICS
-                  </button>
-                  <button
-                    onClick={() => setShowShareModal(true)}
-                    className="flex-1 py-2.5 px-4 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-500 text-white transition flex items-center justify-center gap-2 text-xs shadow-lg shadow-indigo-600/20"
-                  >
-                    <span>🔗</span> Generate Social Link & QR
-                  </button>
-                </div>
-              )}
-            </div>
+            {/* Left Column: Dropzone uploads */}
+            <div className="lg:col-span-5 bg-slate-900/60 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md">
+              <h2 className="text-lg font-bold text-white text-left flex items-center gap-2">
+                <span>📸</span>
+                Upload Flyer Graphic
+              </h2>
 
-            {/* Empty state */}
-            {events.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-slate-500 py-12">
-                <div className="text-4xl mb-3">📋</div>
-                <p className="text-sm font-medium">No events parsed yet.</p>
-                <p className="text-xs text-slate-655 text-center max-w-xs mt-1 leading-relaxed">
-                  Upload {userMode === "organizer" ? "up to 10 flyers" : "your timetable flyer"} on the left panel to populate this interactive grid.
-                </p>
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col min-h-0 space-y-4">
-                
-                {/* Scrolling Grid */}
-                <div className="max-h-[440px] overflow-y-auto space-y-3 pr-1 text-left">
-                  {events.map((event, idx) => (
-                    <div key={idx} className="bg-slate-950 border border-slate-850/80 hover:border-slate-800 rounded-xl p-4 space-y-3 relative group transition">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="sm:col-span-2">
-                          <label className="text-[10px] font-bold tracking-wider text-slate-500 uppercase block mb-1">Session / Class Title</label>
-                          <input
-                            type="text"
-                            value={event.title}
-                            onChange={(e) => updateEventField(idx, "title", e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition"
-                          />
+              {/* Dropzone area */}
+              {previews.length < 1 ? (
+                <label className="border-2 border-dashed border-slate-800 hover:border-indigo-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition bg-slate-950/40 min-h-[220px] group">
+                  <div className="space-y-3 text-center">
+                    <div className="w-12 h-12 bg-slate-900 border border-slate-800 rounded-full flex items-center justify-center mx-auto group-hover:scale-105 transition-transform">
+                      <span>➕</span>
+                    </div>
+                    <p className="text-sm text-slate-300 font-medium">Click to select image file</p>
+                    <p className="text-xs text-slate-500">Supports PNG, JPG, or WEBP (1 Image Limit)</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    multiple={false}
+                    className="hidden"
+                    ref={fileInputRef}
+                  />
+                </label>
+              ) : null}
+
+              {/* Preview List */}
+              {previews.length > 0 && (
+                <div className="space-y-2.5 text-left">
+                  {previews.map((preview, idx) => (
+                    <div key={idx} className="relative bg-slate-950/60 border border-slate-850 p-4 rounded-xl flex flex-col gap-3">
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={preview} 
+                          alt={`Flyer Preview ${idx + 1}`} 
+                          className="w-12 h-12 object-cover rounded-lg border border-slate-800 cursor-zoom-in hover:scale-105 transition-transform" 
+                          onClick={() => setPreviewImage(preview)}
+                          title="Click to enlarge flyer preview"
+                        />
+                        <div className="flex-1 text-left min-w-0">
+                          <p className="text-xs font-bold text-slate-300 truncate">{files[idx]?.name || `Flyer_Graphic_${idx + 1}.png`}</p>
+                          <p className="text-[10px] text-slate-500">Ready to parse</p>
                         </div>
-                        <div>
-                          <label className="text-[10px] font-bold tracking-wider text-slate-500 uppercase block mb-1">Instructors / Artists</label>
-                          <input
-                            type="text"
-                            value={event.artist}
-                            onChange={(e) => updateEventField(idx, "artist", e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block mb-1">Stage / Room</label>
-                          <input
-                            type="text"
-                            value={event.room}
-                            onChange={(e) => updateEventField(idx, "room", e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold tracking-wider text-slate-500 uppercase block mb-1">Date</label>
+                        <button
+                          onClick={() => removeFile(idx)}
+                          className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors text-xs"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <div className="border-t border-slate-850/40 pt-2.5 flex flex-col gap-1.5">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">Flyer Date Context:</label>
                           <input
                             type="date"
-                            value={event.date}
-                            onChange={(e) => updateEventField(idx, "date", e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition"
+                            value={fileDates[idx] || ""}
+                            onChange={(e) => {
+                              const newDates = [...fileDates];
+                              newDates[idx] = e.target.value;
+                              setFileDates(newDates);
+                            }}
+                            className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 transition-colors w-full sm:w-auto"
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="text-[10px] font-bold tracking-wider text-slate-500 uppercase block mb-1">Start</label>
-                            <input
-                              type="time"
-                              value={event.startTime}
-                              onChange={(e) => updateEventField(idx, "startTime", e.target.value)}
-                              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[10px] font-bold tracking-wider text-slate-500 uppercase block mb-1">End</label>
-                            <input
-                              type="time"
-                              value={event.endTime}
-                              onChange={(e) => updateEventField(idx, "endTime", e.target.value)}
-                              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition"
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Row Action Panel (Persistent Visible Remove Button) */}
-                      <div className="pt-2 flex justify-end border-t border-slate-900/50">
-                        <button
-                          onClick={() => deleteEvent(idx)}
-                          className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 hover:underline transition"
-                        >
-                          🗑️ Remove Event
-                        </button>
+                        <p className="text-[9px] text-slate-500 leading-normal">
+                          Provide date if flyer has no date (e.g. shows weekdays like "Saturday" or days like "Day 1").
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
+              )}
 
-                {/* Add custom event at the bottom of the list */}
-                <div className="flex justify-start pt-2">
-                  <button
-                    onClick={addCustomEvent}
-                    className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-750 text-xs font-semibold rounded-lg text-slate-200 hover:text-white transition flex items-center gap-1"
-                  >
-                    ➕ Add Custom Event
-                  </button>
+              {/* Error / Notice notifications */}
+              {errorMessage && (
+                <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 text-sm text-left flex items-start gap-3">
+                  <span className="text-lg">⏳</span>
+                  <div>
+                    <p className="font-semibold">Notice</p>
+                    <p className="text-xs text-amber-200/80 mt-0.5">{errorMessage}</p>
+                  </div>
                 </div>
+              )}
 
-                {/* User mode final export panel */}
-                {userMode === "user" && (
+              <button
+                onClick={() => handleUpload()}
+                disabled={files.length === 0 || loading || cooldown > 0}
+                className="w-full py-3.5 px-6 rounded-xl font-bold text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <span className="animate-spin text-sm">🔄</span>
+                    <span>Extracting Event Matrix...</span>
+                  </>
+                ) : cooldown > 0 ? (
+                  <span>Please wait ({cooldown}s)...</span>
+                ) : (
+                  <span>Convert to Calendar Events</span>
+                )}
+              </button>
+            </div>
+
+            {/* Right Column: Editable review list */}
+            <div className="lg:col-span-7 bg-slate-900/60 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-6 backdrop-blur-md flex flex-col min-h-[420px]">
+              
+              {/* Header and top buttons */}
+              <div className="flex flex-col border-b border-slate-800/85 pb-4 shrink-0 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <span>🗓️</span>
+                    Your Extracted Events
+                  </h2>
+                  {events.length > 0 && (
+                    <button
+                      onClick={() => triggerIcsDownload("flyer")}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-lg text-white transition shadow-md flex items-center gap-1.5"
+                    >
+                      📅 Export to Calendar (.ics)
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Empty state */}
+              {events.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-slate-500 py-12 text-center space-y-3">
+                  <div className="text-4xl">📅</div>
+                  <p className="text-sm font-semibold text-slate-300">Ready to extract your calendar</p>
+                  <p className="text-xs text-slate-500 max-w-xs leading-relaxed mx-auto">
+                    Select your timetable flyer on the left, and click "Convert to Calendar Events" to view and download your schedule here.
+                  </p>
+                </div>
+              ) : (
+                <div className="flex-1 flex flex-col min-h-0 space-y-4">
+                  
+                  {/* Scrolling Grid */}
+                  <div className="max-h-[440px] overflow-y-auto space-y-3 pr-1 text-left">
+                    {events.map((event, idx) => (
+                      <div key={idx} className="bg-slate-950 border border-slate-850/80 hover:border-slate-800 rounded-xl p-4 space-y-3 relative group transition">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="sm:col-span-2">
+                            <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block mb-1">Session / Class Title</label>
+                            <input
+                              type="text"
+                              value={event.title}
+                              onChange={(e) => updateEventField(idx, "title", e.target.value)}
+                              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block mb-1">Instructors / Artists</label>
+                            <input
+                              type="text"
+                              value={event.artist}
+                              onChange={(e) => updateEventField(idx, "artist", e.target.value)}
+                              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block mb-1">Stage / Room</label>
+                            <input
+                              type="text"
+                              value={event.room}
+                              onChange={(e) => updateEventField(idx, "room", e.target.value)}
+                              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block mb-1">Date</label>
+                            <input
+                              type="date"
+                              value={event.date}
+                              onChange={(e) => updateEventField(idx, "date", e.target.value)}
+                              className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block mb-1">Start</label>
+                              <input
+                                type="time"
+                                value={event.startTime}
+                                onChange={(e) => updateEventField(idx, "startTime", e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-bold tracking-wider text-slate-550 uppercase block mb-1">End</label>
+                              <input
+                                type="time"
+                                value={event.endTime}
+                                onChange={(e) => updateEventField(idx, "endTime", e.target.value)}
+                                className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 transition"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Row Action Panel (Persistent Visible Remove Button) */}
+                        <div className="pt-2 flex justify-end border-t border-slate-900/50">
+                          <button
+                            onClick={() => deleteEvent(idx)}
+                            className="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1 hover:underline transition"
+                          >
+                            🗑️ Remove Event
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add custom event at the bottom of the list */}
+                  <div className="flex justify-start pt-2">
+                    <button
+                      onClick={addCustomEvent}
+                      className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-750 text-xs font-semibold rounded-lg text-slate-200 hover:text-white transition flex items-center gap-1"
+                    >
+                      ➕ Add Custom Event
+                    </button>
+                  </div>
+
+                  {/* User mode final export panel */}
                   <div className="pt-4 border-t border-slate-850 flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => triggerIcsDownload("flyer")}
@@ -790,11 +879,75 @@ END:VEVENT
                       <span className="flex items-center gap-1.5">💾 Export Calendar (.ICS)</span>
                     </button>
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-slate-900/60 border border-slate-850 rounded-2xl p-8 shadow-xl backdrop-blur-md flex flex-col md:flex-row gap-8 items-center min-h-[440px] max-w-3xl w-full mx-auto text-left">
+            {/* Carousel Visual Area (Left) */}
+            <div className="w-full md:w-1/2 flex items-center justify-center shrink-0">
+              {proSlides[activeSlide].visual}
+            </div>
+
+            {/* Carousel Content Area (Right) */}
+            <div className="flex-grow space-y-6">
+              <div className="space-y-2">
+                <span className="px-2.5 py-0.5 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                  Pro Feature {activeSlide + 1} of {proSlides.length}
+                </span>
+                <h3 className="text-xl font-extrabold text-white flex items-center gap-2">
+                  <span>{proSlides[activeSlide].icon}</span>
+                  {proSlides[activeSlide].title}
+                </h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {proSlides[activeSlide].description}
+                </p>
+              </div>
+
+              {/* Navigation Controls */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setActiveSlide((prev) => (prev === 0 ? proSlides.length - 1 : prev - 1))}
+                  className="p-1.5 rounded-lg bg-slate-950 border border-slate-850 text-slate-400 hover:text-white transition text-xs font-bold"
+                  aria-label="Previous Slide"
+                >
+                  ←
+                </button>
+                {/* Navigation Indicators */}
+                <div className="flex items-center gap-1.5">
+                  {proSlides.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setActiveSlide(idx)}
+                      className={`h-2 rounded-full transition-all duration-200 ${
+                        activeSlide === idx ? "w-6 bg-indigo-600" : "w-2 bg-slate-850 hover:bg-slate-800"
+                      }`}
+                      aria-label={`Go to slide ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+                <button
+                  onClick={() => setActiveSlide((prev) => (prev === proSlides.length - 1 ? 0 : prev + 1))}
+                  className="p-1.5 rounded-lg bg-slate-950 border border-slate-850 text-slate-400 hover:text-white transition text-xs font-bold"
+                  aria-label="Next Slide"
+                >
+                  →
+                </button>
+              </div>
+
+              {/* Signup Link */}
+              <div className="pt-2">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2 px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold rounded-xl text-white transition shadow-lg shadow-indigo-600/25"
+                >
+                  🚀 Sign Up / Sign In to Access Pro
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Lead waitlist banner */}
         <div className="bg-slate-900/40 border border-slate-850 rounded-2xl p-6 text-center space-y-4 backdrop-blur-md">

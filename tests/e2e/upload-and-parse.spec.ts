@@ -4,10 +4,9 @@ test('should upload flyer, parse events, open export modal, and fetch calendar f
   // 1. Navigate to http://localhost:3000
   await page.goto('/');
 
-  // 2. Toggle user mode to Organizer Pro
-  const organizerButton = page.locator('button:has-text("Organizer Pro")');
-  await expect(organizerButton).toBeVisible();
-  await organizerButton.click();
+  // 2. Toggle user mode to Free Version (default, but verify button is visible)
+  const freeButton = page.locator('button:has-text("Free Version")');
+  await expect(freeButton).toBeVisible();
 
   // 3. Upload tests/fixtures/sample-festival-flyer.png
   const fileInput = page.locator('input[type="file"]');
@@ -22,12 +21,12 @@ test('should upload flyer, parse events, open export modal, and fetch calendar f
   await convertButton.click();
 
   // 6. Verify Gemini extracts schedule slots
-  await expect(page.locator('text=Review Extracted Events')).toBeVisible();
+  await expect(page.locator('text=Your Extracted Events')).toBeVisible();
   await expect(page.locator('input[value="Opening Keynote"]')).toBeVisible();
   await expect(page.locator('input[value="Deep Dive into Agentic AI"]')).toBeVisible();
 
-  // 7. Click "Download .ICS" and verify it downloads the file directly
-  const downloadIcsButton = page.locator('button:has-text("Download .ICS")');
+  // 7. Click "Export Calendar (.ICS)" and verify it downloads the file directly
+  const downloadIcsButton = page.locator('button:has-text("Export Calendar (.ICS)")');
   await expect(downloadIcsButton).toBeEnabled();
   const downloadPromise = page.waitForEvent('download');
   await downloadIcsButton.click();
