@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { supabase, supabaseAdmin } from "@/lib/supabaseClient";
 import { ICalCalendar } from "ical-generator";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ slug: string[] }> }

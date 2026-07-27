@@ -3,6 +3,8 @@
 import React, { useEffect, useState, use } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
+export const dynamic = "force-dynamic";
+
 export default function SubscribeLandingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [project, setProject] = useState<any>(null);

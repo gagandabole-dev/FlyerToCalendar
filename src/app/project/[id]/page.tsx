@@ -5,6 +5,8 @@ import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import ExportModal from "@/components/ExportModal";
 
+export const dynamic = "force-dynamic";
+
 interface ScheduleItem {
   id: string;
   title: string;
