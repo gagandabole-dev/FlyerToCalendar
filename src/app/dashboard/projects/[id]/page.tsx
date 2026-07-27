@@ -447,7 +447,7 @@ END:VEVENT
   const exportAllowed = canExportProject(user?.email, project?.status);
 
   // Generate dynamic Vercel project viewer URL
-  const sharedUrl = `${origin}/project/${project?.id}`;
+  const sharedUrl = `${origin}/project/${project?.id}/subscribe`;
   const qrCodeImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(sharedUrl)}&color=0f172a&bgcolor=ffffff`;
 
   return (
