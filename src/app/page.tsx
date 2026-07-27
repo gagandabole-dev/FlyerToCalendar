@@ -78,8 +78,8 @@ const proSlides = [
     )
   },
   {
-    title: "Real-Time Updates & Lineup Edits",
-    description: "Lineup changes at the last minute? Edit rooms, stages, time slots, or artists directly on your dashboard. Your attendees' calendars will auto-sync instantly.",
+    title: "Lineup Updates & Easy Edits",
+    description: "Lineup changes at the last minute? Edit rooms, stages, time slots, or artists directly on your dashboard, and regenerate your updated calendar links and QR codes instantly.",
     icon: "🔄",
     visual: (
       <div className="bg-slate-950 border border-slate-800 p-4 rounded-xl max-w-[280px] mx-auto text-left space-y-3 shadow-md scale-95">
@@ -386,9 +386,8 @@ END:VEVENT
       if (successCount === files.length) {
         const hasMissingDate = allExtractedEvents.some((e) => e.date === "date_missing");
         if (hasMissingDate) {
-          setTempExtractedEvents(allExtractedEvents);
-          setTempDate("");
-          setShowDatePickerModal(true);
+          setErrorMessage("Please specify a 'Flyer Date Context' date for each flyer, as no dates could be automatically parsed from the flyer graphics.");
+          setEvents([]); // Clear parsed events
         } else {
           setEvents(allExtractedEvents);
           createAnonymousProject("Public Flyer Schedule", allExtractedEvents);
