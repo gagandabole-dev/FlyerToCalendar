@@ -362,7 +362,8 @@ def main():
         "ESLint & code quality audits (Static analysis checks verified)",
         "Database schema integrity check (Supabase migrations and API keys)",
         "API Route validation checks (Mock endpoints pinged with success status)",
-        "5-Pillar config manifest registration (All subagent definitions resolved)"
+        "5-Pillar config manifest registration (All subagent definitions resolved)",
+        "Pillar 2 Growth outreach sequences and B2B hero copy registered"
     ]
 
     check_y = 675
@@ -385,8 +386,9 @@ def main():
         "for all core business and development operations: Engineering & Product Architecture, "
         "Growth & Acquisition, Sales & Revenue, Customer Support, and Legal & Tax compliance. "
         "All subagent configuration files have been successfully scaffolded in the '.antigravity/pillars/' "
-        "directory. Future operational modules can now be bound to specific SaaS platforms or internal "
-        "workflows as requirements evolve."
+        "directory. Additionally, Pillar 2 Growth marketing sequence files (cold outreach emails, IG DMs, "
+        "B2B landing page hero structure, and automated demo pipeline specs) have been successfully "
+        "registered in '.antigravity/marketing/' to drive organizer acquisition."
     )
     wrapped_summary = wrap_text(summary_text, max_chars=80)
     note_y = check_y - 35
